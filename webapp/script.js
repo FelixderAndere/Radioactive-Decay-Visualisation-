@@ -26,6 +26,7 @@ const maxTime = 30; // Maximale Jahre auf dem Chart
 // UI Elemente
 const btnPlay = document.getElementById('btn-play');
 const btnReset = document.getElementById('btn-reset');
+const btnEdit = document.getElementById('btn-edit');
 const speedSlider = document.getElementById('speed-slider');
 const yearsVal = document.getElementById('years-val');
 const statsContainer = document.getElementById('stats-container');
