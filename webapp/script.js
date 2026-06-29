@@ -21,7 +21,19 @@ let currentTime = 0;
 let isPlaying = false;
 let animationFrameId = null;
 let lastTimestamp = 0;
-const maxTime = 30; // Maximale Jahre auf dem Chart
+
+const maxTimeSlider = document.getElementById('max-time-input'); 
+const yearsMaxSpan = document.getElementById('years-max');
+
+let maxTime = parseFloat(maxTimeSlider.value) || 100;
+
+maxTimeSlider.addEventListener('input', function() {
+    maxTime = parseFloat(this.value);
+    yearsMaxSpan.innerText = maxTime.toFixed(2); 
+    
+    drawChart(); 
+}); 
+
 
 // UI Elemente
 const btnPlay = document.getElementById('btn-play');
