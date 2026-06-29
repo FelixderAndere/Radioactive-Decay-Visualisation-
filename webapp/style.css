@@ -62,7 +62,7 @@ p {
 
 /* Controls / Stats */
 .control-group {
-    margin-bottom: 24px;
+    margin-bottom: 15px;
 }
 
 label {
@@ -160,12 +160,50 @@ canvas {
 }
 
 .canvas-label {
-    position: absolute;
-    top: 12px;
-    left: 12px;
     font-size: 0.75rem;
     text-transform: uppercase;
     color: var(--text-muted);
     letter-spacing: 0.5px;
     pointer-events: none;
+}
+
+.canvas-container > .canvas-label {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+}
+
+.canvas-toolbar {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    right: 12px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.segmented-control {
+    display: flex;
+    border: 1px solid #334155;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: rgba(15, 23, 42, 0.8);
+}
+
+.segmented-control button {
+    flex: none;
+    min-width: 72px;
+    border: 0;
+    border-radius: 0;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+}
+
+.segmented-control button.active {
+    background-color: var(--accent);
+    color: white;
 }

@@ -10,8 +10,8 @@
 <body>
 
     <header>
-        <h1>Radioaktive Zerfallskette</h1>
-        <p>Visuelle Simulation mittels Matrixexponential</p>
+        <h1>Radioaktiver Zerfall</h1>
+        <p>Visuelle Simulation von radioaktiven Zerfallsketten</p>
     </header>
 
     <div class="container">
@@ -20,22 +20,24 @@
                 <div class="control-group">
                     <label for="max-time-input">Maximale Zeit</label>
                     <div class="time-display"><span id="years-max">0.00</span> Jahre</div>
-                    <input 
-                        type="range" 
-                        id="max-time-input" 
-                        name="maxTime" 
-                        min="0" 
-                        max="200" 
-                        step="0.25" 
-                        value="100"
-                        oninput="document.getElementById('years-max').innerText = parseFloat(this.value).toFixed(2)"
-                    >
+                    
                 </div>
                 <div class="control-group">
                     <label>Simulierte Zeit</label>
                     <div class="time-display"><span id="years-val">0.00</span> Jahre</div>
                 </div>
             </div>
+
+            <input type="range" 
+                id="max-time-input" 
+                name="maxTime" 
+                min="0" 
+                max="200" 
+                step="0.25" 
+                style="width: 100%; margin-bottom: 20px; margin-top: 0px;"
+                value="100"
+                oninput="document.getElementById('years-max').innerText = parseFloat(this.value).toFixed(2)"
+            >
 
             <div class="btn-row">
                 <button id="btn-play" class="primary">Start</button>
@@ -65,7 +67,13 @@
             </div>
             
             <div class="canvas-container">
-                <div class="canvas-label">Verlaufskurve</div>
+                <div class="canvas-toolbar">
+                    <div class="canvas-label">Verlaufskurve</div>
+                    <div class="segmented-control" aria-label="Graph-Daten">
+                        <button id="graph-theoretical" class="active" type="button">Theorie</button>
+                        <button id="graph-random" type="button">Zufall</button>
+                    </div>
+                </div>
                 <canvas id="chart-canvas" height="220"></canvas>
             </div>
         </div>

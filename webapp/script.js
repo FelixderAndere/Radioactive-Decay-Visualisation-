@@ -32,6 +32,8 @@ window.updateSimulationDataset = function(newDataset) {
     initParticles();
     
     const currentValues = simulator.getValuesAtTime(0);
+    latestValues = currentValues;
+    resetRandomHistory(currentValues);
     updateStatsUI(currentValues);
     drawParticles(currentValues);
     drawChart();
@@ -42,11 +44,15 @@ let currentTime = 0;
 let isPlaying = false;
 let animationFrameId = null;
 let lastTimestamp = 0;
+let latestValues = null;
+let graphMode = 'theoretical';
+let randomHistory = [];
 
 const maxTimeSlider = document.getElementById('max-time-input'); 
 const yearsMaxSpan = document.getElementById('years-max');
 
 let maxTime = parseFloat(maxTimeSlider.value) || 100;
+
 
 maxTimeSlider.addEventListener('input', function() {
     maxTime = parseFloat(this.value);
@@ -69,6 +75,8 @@ const particleCanvas = document.getElementById('particle-canvas');
 const pCtx = particleCanvas.getContext('2d');
 const chartCanvas = document.getElementById('chart-canvas');
 const cCtx = chartCanvas.getContext('2d');
+const graphTheoreticalBtn = document.getElementById('graph-theoretical');
+const graphRandomBtn = document.getElementById('graph-random');
 
 // Erstelle Atome/Partikel für die grafische Darstellung
 const particles = [];
@@ -151,6 +159,27 @@ function drawParticles(currentValues) {
     });
 }
 
+function resetRandomHistory(initialValues) {
+    randomHistory = [{ time: 0, values: { ...initialValues } }];
+}
+
+function addRandomHistoryPoint(time, values) {
+    const lastPoint = randomHistory[randomHistory.length - 1];
+    if (lastPoint && Math.abs(lastPoint.time - time) < 0.01) {
+        lastPoint.values = { ...values };
+        return;
+    }
+
+    randomHistory.push({ time, values: { ...values } });
+}
+
+function setGraphMode(mode) {
+    graphMode = mode;
+    graphTheoreticalBtn.classList.toggle('active', mode === 'theoretical');
+    graphRandomBtn.classList.toggle('active', mode === 'random');
+    drawChart();
+}
+
 // Verlaufschart im unteren Canvas zeichnen
 function drawChart() {
     cCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
@@ -170,28 +199,41 @@ function drawChart() {
     // Kurven zeichnen von 0 bis maxTime
     const keys = Object.keys(currentSubstancesData);
     const steps = 100;
+    const timeScale = maxTime || 1;
 
     keys.forEach(key => {
         cCtx.beginPath();
         cCtx.strokeStyle = colors[key];
         cCtx.lineWidth = 2;
 
-        for(let i = 0; i <= steps; i++) {
-            const t = (i / steps) * maxTime;
-            if (t > currentTime) break; // Zeichne nur bis zur aktuellen Zeit
+        if (graphMode === 'random') {
+            randomHistory.forEach((point, i) => {
+                if (point.time > currentTime) return;
 
-            const vals = simulator.getValuesAtTime(t);
-            const cx = padding + (t / maxTime) * w;
-            const cy = (chartCanvas.height - padding) - (vals[key] * h);
+                const cx = padding + (point.time / timeScale) * w;
+                const cy = (chartCanvas.height - padding) - ((point.values[key] || 0) * h);
 
-            if(i === 0) cCtx.moveTo(cx, cy);
-            else cCtx.lineTo(cx, cy);
+                if(i === 0) cCtx.moveTo(cx, cy);
+                else cCtx.lineTo(cx, cy);
+            });
+        } else {
+            for(let i = 0; i <= steps; i++) {
+                const t = (i / steps) * maxTime;
+                if (t > currentTime) break; // Zeichne nur bis zur aktuellen Zeit
+
+                const vals = simulator.getValuesAtTime(t);
+                const cx = padding + (t / timeScale) * w;
+                const cy = (chartCanvas.height - padding) - (vals[key] * h);
+
+                if(i === 0) cCtx.moveTo(cx, cy);
+                else cCtx.lineTo(cx, cy);
+            }
         }
         cCtx.stroke();
     });
 
     // Aktuelle Zeit-Linie (Cursor)
-    const cursorX = padding + (currentTime / maxTime) * w;
+    const cursorX = padding + (currentTime / timeScale) * w;
     if(cursorX <= padding + w) {
         cCtx.strokeStyle = 'rgba(255,255,255,0.4)';
         cCtx.setLineDash([4, 4]);
@@ -211,7 +253,8 @@ function loop(timestamp) {
 
     if(isPlaying) {
         const speed = parseFloat(speedSlider.value);
-        currentTime += delta * speed;
+        const stepYears = Math.min(delta * speed, maxTime - currentTime);
+        currentTime += stepYears;
 
         if(currentTime >= maxTime) {
             currentTime = maxTime;
@@ -219,8 +262,10 @@ function loop(timestamp) {
             btnPlay.innerText = "Start";
         }
 
-        // Werte mittels der neuen Frontend-API berechnen
-        const currentValues = simulator.getValuesAtTime(currentTime);
+        // Live-Simulation: einzelne Atome zerfallen mit Wahrscheinlichkeit statt exakt nach Erwartungswert.
+        const currentValues = simulator.simulate(stepYears);
+        latestValues = currentValues;
+        addRandomHistoryPoint(currentTime, currentValues);
 
         updateStatsUI(currentValues);
         drawParticles(currentValues);
@@ -239,7 +284,7 @@ function resizeCanvases() {
     chartCanvas.width = cRect.width;
 
     initParticles();
-    const currentValues = simulator.getValuesAtTime(currentTime);
+    const currentValues = latestValues || simulator.getValuesAtTime(currentTime);
     drawParticles(currentValues);
     drawChart();
 }
@@ -247,6 +292,9 @@ function resizeCanvases() {
 btnPlay.addEventListener('click', () => {
     if(currentTime >= maxTime) {
         currentTime = 0;
+        simulator.reset();
+        latestValues = simulator.getValuesAtTime(0);
+        resetRandomHistory(latestValues);
     }
     isPlaying = !isPlaying;
     btnPlay.innerText = isPlaying ? "Pause" : "Start";
@@ -260,10 +308,15 @@ btnReset.addEventListener('click', () => {
     btnPlay.classList.add('primary');
     simulator.reset();
     const currentValues = simulator.getValuesAtTime(0);
+    latestValues = currentValues;
+    resetRandomHistory(currentValues);
     updateStatsUI(currentValues);
     drawParticles(currentValues);
     drawChart();
 });
+
+graphTheoreticalBtn.addEventListener('click', () => setGraphMode('theoretical'));
+graphRandomBtn.addEventListener('click', () => setGraphMode('random'));
 
 window.addEventListener('resize', resizeCanvases);
 
@@ -273,6 +326,8 @@ chartCanvas.width = chartCanvas.offsetWidth;
 initParticles();
 
 const initialVals = simulator.getValuesAtTime(0);
+latestValues = initialVals;
+resetRandomHistory(initialVals);
 updateStatsUI(initialVals);
 drawParticles(initialVals);
 drawChart();

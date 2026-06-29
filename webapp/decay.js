@@ -17,11 +17,15 @@
  * URSPRÜNGLICHEN Startwerten. Perfekt für einen Time-Slider oder eine 
  * kontinuierliche `requestAnimationFrame`-Schleife.
  * - Gibt ein Objekt zurück: { A: 0.45, B: 0.2, ... }
- * * 3. Schrittweise Simulation (Zustandsverändernd):
+ * * 3. Schrittweise Simulation mit Zufall (Zustandsverändernd):
  * const result = simulator.simulate(dt);
- * - Berechnet den Zerfall für den Zeitschritt 'dt' und ÜBERSCHREIBT die
- * internen Werte für den nächsten Aufruf.
- * * 4. Zurücksetzen des Simulators:
+ * - Jedes simulierte Atom zerfällt pro Zeitschritt mit der physikalischen
+ * Wahrscheinlichkeit p = 1 - e^(-lambda * dt). Das Ergebnis schwankt dadurch
+ * realistisch um die theoretische Kurve.
+ * * 4. Deterministische Schritt-Simulation:
+ * const result = simulator.simulateExpected(dt);
+ * - Nutzt weiterhin das Matrixexponential und gibt den Erwartungswert zurück.
+ * * 5. Zurücksetzen des Simulators:
  * simulator.reset();
  * - Setzt die internen Werte wieder auf die initialen Startwerte zurück.
  * ============================================================================
@@ -141,21 +145,27 @@ function expm(A) {
 
 class DecaySimulator {
 
-    constructor(substances) {
+    constructor(substances, options = {}) {
         this.initialSubstances = structuredClone(substances);
         this.substances = structuredClone(substances);
+        this.particleCount = options.particleCount ?? 800;
+        this.random = options.random ?? Math.random;
 
-        const { names, idx, values, A } = this.decayMatrix(this.substances);
+        const { names, idx, values, A, decayInfo } = this.decayMatrix(this.substances);
 
         this.names = names;
         this.idx = idx;
         this.initialValues = [...values];
         this.values = values;
         this.A = A;
+        this.decayInfo = decayInfo;
+        this.initialCounts = this.valuesToCounts(this.initialValues, this.particleCount);
+        this.counts = [...this.initialCounts];
     }
 
     reset() {
         this.values = [...this.initialValues];
+        this.counts = [...this.initialCounts];
     }
 
     decayMatrix(substances) {
@@ -186,6 +196,7 @@ class DecaySimulator {
 
         const n = names.length;
         const A = zeros(n, n);
+        const decayInfo = {};
 
         for (const [name, data] of Object.entries(substances)) {
             const j = idx[name];
@@ -193,18 +204,69 @@ class DecaySimulator {
             const lambda = (T === Infinity) ? 0 : Math.log(2) / T;
 
             A[j][j] = -lambda;
+            decayInfo[name] = {
+                lambda,
+                products: Object.entries(data["decay products"]).map(([product, portion]) => ({
+                    product,
+                    portion
+                }))
+            };
 
             for (const [product, portion] of Object.entries(data["decay products"])) {
                 const i = idx[product];
+                if (i === undefined)
+                    throw new Error(`Unknown decay product: ${product}`);
                 A[i][j] += lambda * portion;
             }
         }
 
-        return { names, idx, values, A };
+        return { names, idx, values, A, decayInfo };
     }
 
-    // Ändert den Zustand Schritt für Schritt
-    simulate(years) {
+    valuesToCounts(values, particleCount) {
+        if (!Number.isInteger(particleCount) || particleCount <= 0)
+            throw new Error("Particle count must be a positive integer");
+
+        const counts = values.map(v => Math.floor(v * particleCount));
+        let assigned = counts.reduce((a, b) => a + b, 0);
+        const remainders = values
+            .map((v, i) => ({ i, r: (v * particleCount) - counts[i] }))
+            .sort((a, b) => b.r - a.r);
+
+        for (let i = 0; assigned < particleCount; i++, assigned++) {
+            counts[remainders[i % remainders.length].i]++;
+        }
+
+        return counts;
+    }
+
+    countsToValues(counts) {
+        const total = counts.reduce((a, b) => a + b, 0) || 1;
+        return counts.map(c => c / total);
+    }
+
+    chooseDecayProduct(products) {
+        if (products.length === 0)
+            return null;
+
+        const totalPortion = products.reduce((sum, p) => sum + p.portion, 0);
+        const roll = this.random();
+
+        if (roll >= totalPortion)
+            return null;
+
+        let cumulative = 0;
+        for (const product of products) {
+            cumulative += product.portion;
+            if (roll <= cumulative)
+                return product.product;
+        }
+
+        return products[products.length - 1].product;
+    }
+
+    // Deterministischer Erwartungswert für glatte Kurven
+    simulateExpected(years) {
         const scaled = matrixScale(this.A, years);
         const transition = expm(scaled);
 
@@ -213,6 +275,45 @@ class DecaySimulator {
         const result = {};
         this.names.forEach((name, i) => {
             result[name] = Math.max(0, this.values[i]); // Verhindert minimale negative Rundungsfehler
+        });
+
+        return result;
+    }
+
+    // Ändert den Zustand Schritt für Schritt mit realistischen Zufallsschwankungen
+    simulate(years) {
+        if (years < 0)
+            throw new Error("Simulation step must be non-negative");
+
+        const nextCounts = [...this.counts];
+
+        this.names.forEach((name, sourceIndex) => {
+            const { lambda, products } = this.decayInfo[name];
+            if (lambda === 0 || this.counts[sourceIndex] === 0)
+                return;
+
+            const decayProbability = 1 - Math.exp(-lambda * years);
+            const sourceCount = this.counts[sourceIndex];
+
+            for (let atom = 0; atom < sourceCount; atom++) {
+                if (this.random() >= decayProbability)
+                    continue;
+
+                const product = this.chooseDecayProduct(products);
+                if (product === null)
+                    continue;
+
+                nextCounts[sourceIndex]--;
+                nextCounts[this.idx[product]]++;
+            }
+        });
+
+        this.counts = nextCounts;
+        this.values = this.countsToValues(this.counts);
+
+        const result = {};
+        this.names.forEach((name, i) => {
+            result[name] = this.values[i];
         });
 
         return result;
