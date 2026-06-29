@@ -15,9 +15,26 @@
 
     <div class="container">
         <div class="panel">
+            <div style="display: flex; justify-content: space-between;">
             <div class="control-group">
-                <label>Simulierte Zeit</label>
-                <div class="time-display"><span id="years-val">0.00</span> Jahre</div>
+                <label for="max-time-input">Maximale Zeit</label>
+                <div class="time-display"><span id="years-max">0.00</span> Jahre</div>
+                <input 
+                    type="range" 
+                    id="max-time-input" 
+                    name="maxTime" 
+                    min="0" 
+                    max="200" 
+                    step="0.25" 
+                    value="0"
+                    oninput="document.getElementById('years-max').innerText = parseFloat(this.value).toFixed(2)"
+                >
+                
+            </div>
+                <div class="control-group">
+                    <label>Simulierte Zeit</label>
+                    <div class="time-display"><span id="years-val">0.00</span> Jahre</div>
+                </div>
             </div>
 
             <div class="btn-row">
