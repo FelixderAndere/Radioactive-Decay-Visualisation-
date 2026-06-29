@@ -92,7 +92,7 @@ function initStatsUI() {
     Object.keys(currentSubstancesData).forEach(key => {
         const hl = currentSubstancesData[key]["half life"];
         const hlText = hl === Infinity ? "∞" : `${hl}j`;
-        const dp = initialSubstances[key]["decay products"];
+        const dp = currentSubstancesData[key]["decay products"];
         const dptext = Object.entries(dp).map(([k, v]) => `${k}: ${v}%`).join(", ");
         
         const html = `
