@@ -71,11 +71,13 @@ function initStatsUI() {
     Object.keys(initialSubstances).forEach(key => {
         const hl = initialSubstances[key]["half life"];
         const hlText = hl === Infinity ? "∞" : `${hl}j`;
+        const dp = initialSubstances[key]["decay products"];
+        const dptext = Object.entries(dp).map(([k, v]) => `${k}: ${v}%`).join(", ");
         
         const html = `
             <div class="stat-item" id="stat-${key}">
                 <div class="stat-header">
-                    <span class="color-${key}">Substanz ${key} <small style="color:var(--text-muted)">(t½: ${hlText})</small></span>
+                    <span class="color-${key}">Substanz ${key} <small style="color:var(--text-muted)">(t½: ${hlText}) (Zerfall: ${dptext})</small></span>
                     <span id="pct-${key}">0.0%</span>
                 </div>
                 <div class="progress-bar-bg">
