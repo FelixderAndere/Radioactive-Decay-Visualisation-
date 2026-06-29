@@ -222,7 +222,6 @@ function resizeCanvases() {
     drawChart();
 }
 
-// Event Listeners
 btnPlay.addEventListener('click', () => {
     if(currentTime >= maxTime) {
         currentTime = 0;
@@ -244,10 +243,8 @@ btnReset.addEventListener('click', () => {
     drawChart();
 });
 
-// Startkonfiguration
 window.addEventListener('resize', resizeCanvases);
 
-// Initialer Aufruf
 initStatsUI();
 particleCanvas.width = particleCanvas.offsetWidth;
 chartCanvas.width = chartCanvas.offsetWidth;
@@ -258,5 +255,5 @@ updateStatsUI(initialVals);
 drawParticles(initialVals);
 drawChart();
 
-// Starte den Loop
+// Start the loop
 animationFrameId = requestAnimationFrame(loop);
