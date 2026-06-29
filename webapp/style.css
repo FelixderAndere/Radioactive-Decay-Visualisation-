@@ -1,0 +1,239 @@
+/***************************************************
+    Radioactive Decay Simulator
+    style.css
+***************************************************/
+
+/* =========================
+   Grundlayout
+========================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #0f1115;
+    color: #e6e6e6;
+    line-height: 1.5;
+}
+
+/* =========================
+   Header
+========================= */
+
+header {
+    padding: 20px;
+    text-align: center;
+    background: #151923;
+    border-bottom: 1px solid #2a2f3a;
+}
+
+header h1 {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+header p {
+    font-size: 13px;
+    color: #a9b0bd;
+}
+
+/* =========================
+   Layout Cards
+========================= */
+
+main {
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 10px;
+}
+
+.card {
+    background: #151923;
+    border: 1px solid #2a2f3a;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+/* =========================
+   Controls
+========================= */
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+button {
+    background: #2b6cff;
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #1f56d1;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* =========================
+   Slider
+========================= */
+
+.sliderContainer,
+.speedContainer {
+    margin-top: 10px;
+}
+
+input[type="range"] {
+    width: 100%;
+    margin-top: 5px;
+}
+
+/* =========================
+   Tabellen
+========================= */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+th, td {
+    padding: 8px;
+    border-bottom: 1px solid #2a2f3a;
+    text-align: left;
+}
+
+th {
+    color: #a9b0bd;
+    font-weight: normal;
+}
+
+/* =========================
+   Stoff-Tabelle Inputs
+========================= */
+
+input, textarea {
+    width: 100%;
+    padding: 6px;
+    border-radius: 5px;
+    border: 1px solid #2a2f3a;
+    background: #0f1115;
+    color: #e6e6e6;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 40px;
+}
+
+/* =========================
+   Buttons in Tabellen
+========================= */
+
+.deleteButton {
+    background: #ff4d4d;
+}
+
+.deleteButton:hover {
+    background: #d93636;
+}
+
+/* =========================
+   Chart
+========================= */
+
+canvas {
+    width: 100% !important;
+    height: 400px !important;
+    background: #0f1115;
+    border-radius: 8px;
+}
+
+/* =========================
+   Message Box
+========================= */
+
+#messageBox {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #1b2030;
+    border: 1px solid #2a2f3a;
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#messageBox.hidden {
+    display: none;
+}
+
+#closeMessageButton {
+    background: #2b6cff;
+}
+
+/* =========================
+   Loading Overlay
+========================= */
+
+#loadingOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#loadingOverlay.hidden {
+    display: none;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #2a2f3a;
+    border-top: 4px solid #2b6cff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 700px) {
+
+    .controls {
+        flex-direction: column;
+    }
+
+    button {
+        width: 100%;
+    }
+}
