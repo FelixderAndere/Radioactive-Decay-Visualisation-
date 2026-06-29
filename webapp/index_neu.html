@@ -1,12 +1,446 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Radioaktiver Zerfall Simulator</title>
+    <style>
+        :root {
+            --bg-color: #121824;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+        }
+
+        /* Farbschema für die Elemente (Substanzen A bis E) */
+        .color-A { color: #ef4444; --sub-color: #ef4444; }
+        .color-B { color: #f97316; --sub-color: #f97316; }
+        .color-C { color: #eab308; --sub-color: #eab308; }
+        .color-D { color: #06b6d4; --sub-color: #06b6d4; }
+        .color-E { color: #10b981; --sub-color: #10b981; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 { margin: 0 0 10px 0; font-size: 2rem; letter-spacing: 0.5px; }
+        p { margin: 0; color: var(--text-muted); }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        @media (min-width: 850px) {
+            .container { grid-template-columns: 350px 1fr; }
+        }
+
+        .panel {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Controls / Stats */
+        .control-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .time-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: monospace;
+            color: var(--accent);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            flex: 1;
+            background-color: #334155;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #475569; }
+        button.primary { background-color: var(--accent); }
+        button.primary:hover { background-color: #2563eb; }
+
+        /* Stats List */
+        .stat-item {
+            margin-bottom: 15px;
+        }
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .progress-bar-bg {
+            background-color: #0f172a;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* Canvas-Bereiche */
+        .visualization-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        canvas {
+            background-color: #0f172a;
+            border-radius: 12px;
+            width: 100%;
+            display: block;
+        }
+
+        .canvas-container {
+            position: relative;
+        }
+        .canvas-label {
+            position: absolute;
+            top: 10px;
+            left: 14px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
-    
+
+    <header>
+        <h1>Radioaktive Zerfallskette</h1>
+        <p>Visuelle Simulation mittels Matrixexponential</p>
+    </header>
+
+    <div class="container">
+        <div class="panel">
+            <div class="control-group">
+                <label>Simulierte Zeit</label>
+                <div class="time-display"><span id="years-val">0.00</span> Jahre</div>
+            </div>
+
+            <div class="btn-row">
+                <button id="btn-play" class="primary">Start</button>
+                <button id="btn-reset">Reset</button>
+            </div>
+
+            <div class="control-group">
+                <label for="speed-slider">Simulationsgeschwindigkeit</label>
+                <input type="range" id="speed-slider" min="0.1" max="5" step="0.1" value="1" style="width:100%">
+            </div>
+
+            <hr style="border-color: #334155; margin: 25px 0;">
+
+            <h3>Substanzen & Anteile</h3>
+            <div id="stats-container">
+                </div>
+        </div>
+
+        <div class="visualization-area">
+            <div class="canvas-container">
+                <div class="canvas-label">Atomgitter (Zustandswechsel)</div>
+                <canvas id="particle-canvas" height="300"></canvas>
+            </div>
+            
+            <div class="canvas-container">
+                <div class="canvas-label">Verlaufskurve</div>
+                <canvas id="chart-canvas" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="decay.js"></script>
+    <script>
+        // Setup der initialen Substanzen (analog zum Beispiel)
+        const initialSubstances = {
+            A: { value: 1.0, "half life": 5, "decay products": { B: 0.7, C: 0.3 } },
+            B: { value: 0.0, "half life": 3, "decay products": { C: 1.0 } },
+            C: { value: 0.0, "half life": 8, "decay products": { D: 1.0 } },
+            D: { value: 0.0, "half life": 1, "decay products": { E: 1.0 } },
+            E: { value: 0.0, "half life": Infinity, "decay products": {} }
+        };
+
+        const colors = {
+            A: '#ef4444',
+            B: '#f97316',
+            C: '#eab308',
+            D: '#06b6d4',
+            E: '#10b981'
+        };
+
+        // Initialisierungen
+        const simulator = new DecaySimulator(initialSubstances);
+        let currentTime = 0;
+        let isPlaying = false;
+        let animationFrameId = null;
+        let lastTimestamp = 0;
+        const maxTime = 30; // Maximale Jahre auf dem Chart
+
+        // UI Elemente
+        const btnPlay = document.getElementById('btn-play');
+        const btnReset = document.getElementById('btn-reset');
+        const speedSlider = document.getElementById('speed-slider');
+        const yearsVal = document.getElementById('years-val');
+        const statsContainer = document.getElementById('stats-container');
+
+        // Canvas Setup
+        const particleCanvas = document.getElementById('particle-canvas');
+        const pCtx = particleCanvas.getContext('2d');
+        const chartCanvas = document.getElementById('chart-canvas');
+        const cCtx = chartCanvas.getContext('2d');
+
+        // Erstelle Atome/Partikel für die grafische Darstellung
+        const particles = [];
+        const numParticles = 800; // Anzahl der Punkte im Gitter
+        
+        function initParticles() {
+            particles.length = 0;
+            for(let i=0; i<numParticles; i++) {
+                particles.push({
+                    x: Math.random() * particleCanvas.width,
+                    y: Math.random() * particleCanvas.height,
+                    // Zufälliger Schwellenwert für die Zuweisung des Typs basierend auf Wahrscheinlichkeiten
+                    randValue: Math.random() 
+                });
+            }
+        }
+
+        // Statistik HTML Struktur aufbauen
+        function initStatsUI() {
+            statsContainer.innerHTML = '';
+            Object.keys(initialSubstances).forEach(key => {
+                const hl = initialSubstances[key]["half life"];
+                const hlText = hl === Infinity ? "∞" : `${hl}j`;
+                
+                const html = `
+                    <div class="stat-item" id="stat-${key}">
+                        <div class="stat-header">
+                            <span class="color-${key}">Substanz ${key} <small style="color:var(--text-muted)">(t½: ${hlText})</small></span>
+                            <span id="pct-${key}">0.0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="bar-${key}" style="background-color: ${colors[key]}"></div>
+                        </div>
+                    </div>
+                `;
+                statsContainer.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        // UI & Bars updaten
+        function updateStatsUI(currentValues) {
+            Object.entries(currentValues).forEach(([key, val]) => {
+                const pct = (val * 100).toFixed(1);
+                document.getElementById(`pct-${key}`).innerText = `${pct}%`;
+                document.getElementById(`bar-${key}`).style.width = `${pct}%`;
+            });
+            yearsVal.innerText = currentTime.toFixed(2);
+        }
+
+        // Zeichnet die Atome als Punkte, deren Verteilung den mathematischen Werten gleicht
+        function drawParticles(currentValues) {
+            pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+            
+            // Grenzen für Partikel-Zuweisung berechnen
+            const keys = Object.keys(currentValues);
+            const thresholds = [];
+            let cumulative = 0;
+            
+            keys.forEach(key => {
+                cumulative += currentValues[key];
+                thresholds.push({ key, limit: cumulative });
+            });
+
+            particles.forEach(p => {
+                let type = keys[keys.length - 1]; // Fallback auf das letzte Element
+                for(let t of thresholds) {
+                    if(p.randValue <= t.limit) {
+                        type = t.key;
+                        break;
+                    }
+                }
+
+                pCtx.beginPath();
+                pCtx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+                pCtx.fillStyle = colors[type];
+                pCtx.fill();
+            });
+        }
+
+        // Verlaufschart im unteren Canvas zeichnen
+        function drawChart() {
+            cCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            const padding = 30;
+            const w = chartCanvas.width - padding * 2;
+            const h = chartCanvas.height - padding * 2;
+
+            // Achsen zeichnen
+            cCtx.strokeStyle = '#334155';
+            cCtx.lineWidth = 1;
+            cCtx.beginPath();
+            cCtx.moveTo(padding, padding);
+            cCtx.lineTo(padding, chartCanvas.height - padding);
+            cCtx.lineTo(chartCanvas.width - padding, chartCanvas.height - padding);
+            cCtx.stroke();
+
+            // Kurven zeichnen von 0 bis maxTime
+            const keys = Object.keys(initialSubstances);
+            const steps = 100;
+
+            keys.forEach(key => {
+                cCtx.beginPath();
+                cCtx.strokeStyle = colors[key];
+                cCtx.lineWidth = 2;
+
+                for(let i = 0; i <= steps; i++) {
+                    const t = (i / steps) * maxTime;
+                    if (t > currentTime) break; // Zeichne nur bis zur aktuellen Zeit
+
+                    const vals = simulator.getValuesAtTime(t);
+                    const cx = padding + (t / maxTime) * w;
+                    const cy = (chartCanvas.height - padding) - (vals[key] * h);
+
+                    if(i === 0) cCtx.moveTo(cx, cy);
+                    else cCtx.lineTo(cx, cy);
+                }
+                cCtx.stroke();
+            });
+
+            // Aktuelle Zeit-Linie (Cursor)
+            const cursorX = padding + (currentTime / maxTime) * w;
+            if(cursorX <= padding + w) {
+                cCtx.strokeStyle = 'rgba(255,255,255,0.4)';
+                cCtx.setLineDash([4, 4]);
+                cCtx.beginPath();
+                cCtx.moveTo(cursorX, padding);
+                cCtx.lineTo(cursorX, chartCanvas.height - padding);
+                cCtx.stroke();
+                cCtx.setLineDash([]);
+            }
+        }
+
+        // Haupt-Animationsloop
+        function loop(timestamp) {
+            if(!lastTimestamp) lastTimestamp = timestamp;
+            const delta = (timestamp - lastTimestamp) / 1000; // in Sekunden
+            lastTimestamp = timestamp;
+
+            if(isPlaying) {
+                const speed = parseFloat(speedSlider.value);
+                currentTime += delta * speed;
+
+                if(currentTime >= maxTime) {
+                    currentTime = maxTime;
+                    isPlaying = false;
+                    btnPlay.innerText = "Start";
+                }
+
+                // Werte mittels der neuen Frontend-API berechnen
+                const currentValues = simulator.getValuesAtTime(currentTime);
+
+                updateStatsUI(currentValues);
+                drawParticles(currentValues);
+                drawChart();
+            }
+
+            animationFrameId = requestAnimationFrame(loop);
+        }
+
+        // Resize Handlers für responsive Canvas-Auflösung
+        function resizeCanvases() {
+            const pRect = particleCanvas.getBoundingClientRect();
+            particleCanvas.width = pRect.width;
+            
+            const cRect = chartCanvas.getBoundingClientRect();
+            chartCanvas.width = cRect.width;
+
+            initParticles();
+            const currentValues = simulator.getValuesAtTime(currentTime);
+            drawParticles(currentValues);
+            drawChart();
+        }
+
+        // Event Listeners
+        btnPlay.addEventListener('click', () => {
+            if(currentTime >= maxTime) {
+                currentTime = 0;
+            }
+            isPlaying = !isPlaying;
+            btnPlay.innerText = isPlaying ? "Pause" : "Start";
+            btnPlay.classList.toggle('primary', !isPlaying);
+        });
+
+        btnReset.addEventListener('click', () => {
+            isPlaying = false;
+            currentTime = 0;
+            btnPlay.innerText = "Start";
+            btnPlay.classList.add('primary');
+            simulator.reset();
+            const currentValues = simulator.getValuesAtTime(0);
+            updateStatsUI(currentValues);
+            drawParticles(currentValues);
+            drawChart();
+        });
+
+        // Startkonfiguration
+        window.addEventListener('resize', resizeCanvases);
+        
+        // Initialer Aufruf
+        initStatsUI();
+        particleCanvas.width = particleCanvas.offsetWidth;
+        chartCanvas.width = chartCanvas.offsetWidth;
+        initParticles();
+        
+        const initialVals = simulator.getValuesAtTime(0);
+        updateStatsUI(initialVals);
+        drawParticles(initialVals);
+        drawChart();
+
+        // Starte den Loop
+        animationFrameId = requestAnimationFrame(loop);
+    </script>
 </body>
-<script src="decay.js"></script>
 </html>

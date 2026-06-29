@@ -1,10 +1,31 @@
 "use strict";
 
-/*
-    Radioactive decay simulator
-    Pure JavaScript version of the Python implementation.
-    No external libraries required.
-*/
+/**
+ * ============================================================================
+ * DOCUMENTATION & FRONTEND API
+ * ============================================================================
+ * * Diese Bibliothek simuliert den radioaktiven Zerfall von Substanzen über ein
+ * mathematisches System linearer Differentialgleichungen (Matrixexponential).
+ * * Verwendung im Frontend:
+ * * 1. Instanziierung:
+ * const simulator = new DecaySimulator(initialSubstances);
+ * - 'initialSubstances' ist ein Objekt, das die Startwerte (Summe = 1.0),
+ * Halbwertszeiten und Zerfallsprodukte definiert (siehe Struktur unten).
+ * * 2. Simulation eines absoluten Zeitpunkts (Empfohlen für UI-Animationen):
+ * const result = simulator.getValuesAtTime(years);
+ * - Berechnet die exakte Verteilung nach 'years' Jahren, basierend AUF DEN 
+ * URSPRÜNGLICHEN Startwerten. Perfekt für einen Time-Slider oder eine 
+ * kontinuierliche `requestAnimationFrame`-Schleife.
+ * - Gibt ein Objekt zurück: { A: 0.45, B: 0.2, ... }
+ * * 3. Schrittweise Simulation (Zustandsverändernd):
+ * const result = simulator.simulate(dt);
+ * - Berechnet den Zerfall für den Zeitschritt 'dt' und ÜBERSCHREIBT die
+ * internen Werte für den nächsten Aufruf.
+ * * 4. Zurücksetzen des Simulators:
+ * simulator.reset();
+ * - Setzt die internen Werte wieder auf die initialen Startwerte zurück.
+ * ============================================================================
+ */
 
 // --------------------------------------------------
 // Matrix utilities
@@ -21,10 +42,6 @@ function identity(n) {
 
 function zeros(rows, cols) {
     return Array.from({ length: rows }, () => new Array(cols).fill(0));
-}
-
-function cloneMatrix(A) {
-    return A.map(r => [...r]);
 }
 
 function matrixAdd(A, B) {
@@ -96,24 +113,18 @@ function matrixNormInf(A) {
 // --------------------------------------------------
 
 function expm(A) {
-
     const n = A.length;
-
     const norm = matrixNormInf(A);
-
     const s = Math.max(0, Math.ceil(Math.log2(norm || 1)));
 
     let X = matrixScale(A, 1 / Math.pow(2, s));
-
     let result = identity(n);
     let term = identity(n);
 
     // Taylor expansion
     for (let k = 1; k <= 40; k++) {
-
         term = matrixMultiply(term, X);
         term = matrixScale(term, 1 / k);
-
         result = matrixAdd(result, term);
     }
 
@@ -131,48 +142,41 @@ function expm(A) {
 class DecaySimulator {
 
     constructor(substances) {
+        this.initialSubstances = structuredClone(substances);
         this.substances = structuredClone(substances);
 
-        const {
-            names,
-            idx,
-            values,
-            A
-        } = this.decayMatrix(this.substances);
+        const { names, idx, values, A } = this.decayMatrix(this.substances);
 
         this.names = names;
         this.idx = idx;
+        this.initialValues = [...values];
         this.values = values;
         this.A = A;
     }
 
+    reset() {
+        this.values = [...this.initialValues];
+    }
+
     decayMatrix(substances) {
-
         const names = Object.keys(substances);
-
         const idx = {};
-
         names.forEach((n, i) => idx[n] = i);
 
         const values = names.map(n => substances[n].value);
-
         const total = values.reduce((a, b) => a + b, 0);
 
         if (Math.abs(total - 1) > 1e-10)
             throw new Error("Initial values must sum to 1.0");
 
         for (const substance of Object.values(substances)) {
-
             if (substance["half life"] < 0)
                 throw new Error("Half-life must be non-negative");
 
             let sum = 0;
-
             for (const p of Object.values(substance["decay products"])) {
-
                 if (p < 0 || p > 1)
                     throw new Error("Decay portions must be between 0 and 1");
-
                 sum += p;
             }
 
@@ -181,177 +185,54 @@ class DecaySimulator {
         }
 
         const n = names.length;
-
         const A = zeros(n, n);
 
         for (const [name, data] of Object.entries(substances)) {
-
             const j = idx[name];
-
             const T = data["half life"];
-
-            const lambda = (T === Infinity)
-                ? 0
-                : Math.log(2) / T;
+            const lambda = (T === Infinity) ? 0 : Math.log(2) / T;
 
             A[j][j] = -lambda;
 
             for (const [product, portion] of Object.entries(data["decay products"])) {
-
                 const i = idx[product];
-
                 A[i][j] += lambda * portion;
             }
         }
 
-        return {
-            names,
-            idx,
-            values,
-            A
-        };
+        return { names, idx, values, A };
     }
 
+    // Ändert den Zustand Schritt für Schritt
     simulate(years) {
-
         const scaled = matrixScale(this.A, years);
-
         const transition = expm(scaled);
 
-        this.values = matrixVectorMultiply(
-            transition,
-            this.values
-        );
+        this.values = matrixVectorMultiply(transition, this.values);
 
         const result = {};
-
         this.names.forEach((name, i) => {
-            result[name] = Number(this.values[i].toFixed(2));
+            result[name] = Math.max(0, this.values[i]); // Verhindert minimale negative Rundungsfehler
         });
 
         return result;
     }
-}
 
-// --------------------------------------------------
-// CLI Visualization (Browser Console)
-// --------------------------------------------------
+    // Gibt Werte für einen absolutem Zeitpunkt zurück, OHNE die Basiswerte dauerhaft zu überschreiben
+    getValuesAtTime(years) {
+        const scaled = matrixScale(this.A, years);
+        const transition = expm(scaled);
+        const calculatedValues = matrixVectorMultiply(transition, this.initialValues);
 
-class ConsoleVisualization {
-
-    constructor(substances) {
-
-        this.substances = structuredClone(substances);
-
-        this.simulator = new DecaySimulator(this.substances);
-    }
-
-    run(iterations, dt = 1) {
-
-        console.clear();
-
-        for (let i = 0; i < iterations; i++) {
-
-            const values = this.simulator.simulate(dt);
-
-            for (const name of Object.keys(values))
-                this.substances[name].value = values[name];
-
-            this.draw(i + 1, iterations);
-        }
-    }
-
-    draw(iteration, totalIterations) {
-
-        console.log(
-            `Iteration ${iteration}/${totalIterations}\n`
-        );
-
-        let total = 0;
-
-        for (const s of Object.values(this.substances))
-            total += s.value;
-
-        for (const [name, data] of Object.entries(this.substances)) {
-
-            const frac = total === 0
-                ? 0
-                : data.value / total;
-
-            const width = 40;
-
-            const filled = Math.round(frac * width);
-
-            const bar =
-                "█".repeat(filled) +
-                "-".repeat(width - filled);
-
-            console.log(
-                `${name.padStart(3)} | ${bar} | ${(frac * 100).toFixed(2)}% | t½ = ${data["half life"] === Infinity ? "∞" : data["half life"]}`
-            );
-        }
-
-        console.log("Total:", total.toFixed(6));
-        console.log("--------------------------------------------");
+        const result = {};
+        this.names.forEach((name, i) => {
+            result[name] = Math.max(0, calculatedValues[i]);
+        });
+        return result;
     }
 }
 
-// --------------------------------------------------
-// Example
-// --------------------------------------------------
-
-const substances = {
-
-    A: {
-        value: 1,
-        "half life": 5,
-        "decay products": {
-            B: 0.7,
-            C: 0.3
-        }
-    },
-
-    B: {
-        value: 0,
-        "half life": 3,
-        "decay products": {
-            C: 1
-        }
-    },
-
-    C: {
-        value: 0,
-        "half life": 8,
-        "decay products": {
-            D: 1
-        }
-    },
-
-    D: {
-        value: 0,
-        "half life": 1,
-        "decay products": {
-            E: 1
-        }
-    },
-
-    E: {
-        value: 0,
-        "half life": Infinity,
-        "decay products": {}
-    }
-
-};
-
-// Run once
-const simulator = new DecaySimulator(substances);
-
-console.log("After 5 years:");
-console.log(simulator.simulate(5));
-
-// Continuous simulation
-console.log("\n===== Continuous Simulation =====\n");
-
-const cli = new ConsoleVisualization(substances);
-
-cli.run(20, 0.5);
+// Global verfügbar machen für das Frontend ohne Bundler
+if (typeof window !== 'undefined') {
+    window.DecaySimulator = DecaySimulator;
+}
