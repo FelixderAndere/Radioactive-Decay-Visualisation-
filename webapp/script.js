@@ -93,7 +93,8 @@ function initStatsUI() {
         const hl = currentSubstancesData[key]["half life"];
         const hlText = hl === Infinity ? "∞" : `${hl}j`;
         const dp = currentSubstancesData[key]["decay products"];
-        const dptext = Object.entries(dp).map(([k, v]) => `${k}: ${v}%`).join(", ");
+        // Convert fraction value back to clean legible percentage layout representation
+        const dptext = Object.entries(dp).map(([k, v]) => `${k}: ${(v * 100).toFixed(0)}%`).join(", ");
         
         const html = `
             <div class="stat-item" id="stat-${key}">
