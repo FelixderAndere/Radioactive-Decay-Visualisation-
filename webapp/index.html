@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Radioaktiver Zerfall Simulator</title>
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="modal.css" />
 </head>
 <body>
 
@@ -16,21 +17,20 @@
     <div class="container">
         <div class="panel">
             <div style="display: flex; justify-content: space-between;">
-            <div class="control-group">
-                <label for="max-time-input">Maximale Zeit</label>
-                <div class="time-display"><span id="years-max">0.00</span> Jahre</div>
-                <input 
-                    type="range" 
-                    id="max-time-input" 
-                    name="maxTime" 
-                    min="0" 
-                    max="200" 
-                    step="0.25" 
-                    value="0"
-                    oninput="document.getElementById('years-max').innerText = parseFloat(this.value).toFixed(2)"
-                >
-                
-            </div>
+                <div class="control-group">
+                    <label for="max-time-input">Maximale Zeit</label>
+                    <div class="time-display"><span id="years-max">0.00</span> Jahre</div>
+                    <input 
+                        type="range" 
+                        id="max-time-input" 
+                        name="maxTime" 
+                        min="0" 
+                        max="200" 
+                        step="0.25" 
+                        value="0"
+                        oninput="document.getElementById('years-max').innerText = parseFloat(this.value).toFixed(2)"
+                    >
+                </div>
                 <div class="control-group">
                     <label>Simulierte Zeit</label>
                     <div class="time-display"><span id="years-val">0.00</span> Jahre</div>
@@ -55,9 +55,7 @@
                     <button id="btn-edit" style="height: 34.5px; margin-left: 5px;">Bearbeiten</button>
                 </div>
                 <div id="stats-container"></div>
-            </div>
-            
-            
+            </div>            
             
         </div>
 
@@ -70,6 +68,27 @@
             <div class="canvas-container">
                 <div class="canvas-label">Verlaufskurve</div>
                 <canvas id="chart-canvas" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Einstellungen anpassen</h2>
+                <button class="close-btn" id="modal-close-x">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="control-group" style="margin-bottom: 15px;">
+                    <label for="modal-input-example" style="display:block; margin-bottom:5px;">Beispiel-Einstellung:</label>
+                    <input type="text" id="modal-input-example" placeholder="Wert eingeben..." style="width:100%; padding: 8px; box-sizing:border-box; border-radius:4px; border: 1px solid #475569; background:#0f172a; color:#fff;">
+                </div>
+                <p style="font-size: 0.9rem; color: #94a3b8;">Work in progress.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-cancel-btn" style="padding: 8px 16px; background: #475569; color: white; border: none; border-radius: 4px; cursor: pointer;">Abbrechen</button>
+                <button id="modal-save-btn" style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">Speichern</button>
             </div>
         </div>
     </div>

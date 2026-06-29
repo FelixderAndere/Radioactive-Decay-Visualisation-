@@ -258,3 +258,35 @@ drawChart();
 
 // Starte den Loop
 animationFrameId = requestAnimationFrame(loop);
+
+// Modal window to edit substances+
+const modal = document.getElementById("settings-modal");
+const btnModalEdit = document.getElementById("btn-edit");
+const btnCloseX = document.getElementById("modal-close-x");
+const btnCancel = document.getElementById("modal-cancel-btn");
+const btnSave = document.getElementById("modal-save-btn");
+
+// Öffnen bei Klick auf "Bearbeiten"
+btnModalEdit.addEventListener("click", () => {
+    modal.style.display = "block";
+});
+
+// Schließen-Funktionen
+const closeModal = () => {
+    modal.style.display = "none";
+};
+
+btnCloseX.addEventListener("click", closeModal);
+btnCancel.addEventListener("click", closeModal);
+
+btnSave.addEventListener("click", () => {
+    // Hier später die Logik zum Speichern der Einstellungen einfügen
+    closeModal();
+});
+
+// Schließen, wenn man außerhalb des Modals klickt
+window.addEventListener("click", (event) => {
+    if (event.target === modal) {
+        closeModal();
+    }
+});
