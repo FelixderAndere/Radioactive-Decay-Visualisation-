@@ -1,264 +1,171 @@
-/* ========================= */
-/* Radioactive Theme         */
-/* ========================= */
-
 :root {
-    --bg: #070b08;
-    --panel: #0e1410;
-    --panel2: #101b14;
-
-    --text: #d6ffe1;
-    --muted: #7fbf93;
-
-    --primary: #39ff14;     /* radioactive green */
-    --primary-soft: rgba(57, 255, 20, 0.15);
-
-    --danger: #ff3b3b;
-    --warning: #ffcc00;
-
-    --border: rgba(57, 255, 20, 0.25);
-    --glow: 0 0 10px rgba(57, 255, 20, 0.35),
-            0 0 25px rgba(57, 255, 20, 0.15);
+    --bg-color: #0f172a;       /* Einheitlicher, cleaner Hintergrund */
+    --text-color: #f8fafc;
+    --text-muted: #64748b;     /* Etwas dezenter für weniger Ablenkung */
+    --accent: #3b82f6;
 }
 
-/* ========================= */
-/* Base                     */
-/* ========================= */
+/* Farbschema für die Elemente (Substanzen A bis E) */
+.color-A { color: #ef4444; --sub-color: #ef4444; }
+.color-B { color: #f97316; --sub-color: #f97316; }
+.color-C { color: #eab308; --sub-color: #eab308; }
+.color-D { color: #06b6d4; --sub-color: #06b6d4; }
+.color-E { color: #10b981; --sub-color: #10b981; }
 
 body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     margin: 0;
-    font-family: "Courier New", monospace;
-    background:
-        radial-gradient(circle at 20% 10%, rgba(57, 255, 20, 0.08), transparent 40%),
-        radial-gradient(circle at 80% 90%, rgba(0, 255, 128, 0.06), transparent 50%),
-        var(--bg);
-    color: var(--text);
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
 }
-
-/* subtle scanline effect */
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0.02),
-        rgba(255, 255, 255, 0.02) 1px,
-        transparent 2px,
-        transparent 4px
-    );
-    pointer-events: none;
-    opacity: 0.25;
-}
-
-/* ========================= */
-/* Header                   */
-/* ========================= */
 
 header {
     text-align: center;
-    padding: 24px 16px;
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(57,255,20,0.08), transparent);
-}
-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-
-    z-index: 1000;
-
-    text-align: center;
-    padding: 24px 16px;
-    border-bottom: 1px solid var(--border);
-    background: linear-gradient(180deg, rgba(57,255,20,0.08), rgba(7,11,8,0.95));
-    backdrop-filter: blur(6px);
-    height: 120px;
-    box-sizing: border-box;
+    margin-bottom: 40px;
 }
 
-main {
-    margin-top: 130px;
+h1 { 
+    margin: 0 0 8px 0; 
+    font-size: 1.5rem; 
+    font-weight: 500; 
+    letter-spacing: -0.5px; 
 }
 
-header h1 {
-    margin: 0;
-    color: var(--primary);
-    text-shadow: var(--glow);
-    letter-spacing: 1px;
+p { 
+    margin: 0; 
+    color: var(--text-muted); 
+    font-size: 0.9rem; 
 }
 
-header p {
-    margin-top: 6px;
-    color: var(--muted);
+.container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    max-width: 1000px;
+    width: 100%;
 }
 
-/* ========================= */
-/* Cards                    */
-/* ========================= */
-
-.card {
-    background: linear-gradient(180deg, var(--panel), var(--panel2));
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    margin: 16px;
-    box-shadow: var(--glow);
+@media (min-width: 850px) {
+    .container { grid-template-columns: 280px 1fr; }
 }
 
-/* ========================= */
-/* Controls                 */
-/* ========================= */
+/* Panels sind jetzt flach und strukturieren rein über Abstände */
+.panel {
+    padding: 0;
+}
 
-.controls button {
-    background: transparent;
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    padding: 8px 14px;
-    margin-right: 8px;
-    cursor: pointer;
-    transition: 0.2s;
+/* Controls / Stats */
+.control-group {
+    margin-bottom: 24px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
-.controls button:hover {
-    background: var(--primary-soft);
-    box-shadow: var(--glow);
+.time-display {
+    font-size: 1.25rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--text-color);
 }
 
-#pauseButton {
-    border-color: var(--warning);
-    color: var(--warning);
+.btn-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
 }
-
-#resetButton {
-    border-color: var(--danger);
-    color: var(--danger);
-}
-
-/* ========================= */
-/* Sliders                  */
-/* ========================= */
-
-.sliderContainer,
-.speedContainer {
-    margin-top: 12px;
-}
-
-input[type="range"] {
-    width: 100%;
-    accent-color: var(--primary);
-}
-
-/* ========================= */
-/* Table                    */
-/* ========================= */
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-    color: var(--text);
-}
-
-th {
-    text-align: left;
-    color: var(--primary);
-    border-bottom: 1px solid var(--border);
-    padding: 8px;
-    text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 1px;
-}
-
-td {
-    padding: 8px;
-    border-bottom: 1px solid rgba(57, 255, 20, 0.08);
-}
-
-/* inputs */
-input, textarea {
-    width: 100%;
-    background: #0a120d;
-    border: 1px solid rgba(57, 255, 20, 0.25);
-    color: var(--text);
-    padding: 6px;
-    outline: none;
-}
-
-input:focus, textarea:focus {
-    border-color: var(--primary);
-    box-shadow: var(--glow);
-}
-
-/* ========================= */
-/* Buttons (general)        */
-/* ========================= */
 
 button {
-    font-family: inherit;
+    flex: 1;
+    background-color: transparent;
+    color: var(--text-muted);
+    border: 1px solid #334155;
+    padding: 8px 12px;
     border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
 }
 
-/* delete button */
-.deleteButton {
-    background: transparent;
-    border: 1px solid var(--danger);
-    color: var(--danger);
+button:hover { 
+    color: var(--text-color);
+    border-color: #475569; 
 }
 
-.deleteButton:hover {
-    background: rgba(255, 59, 59, 0.15);
+button.primary { 
+    background-color: var(--accent); 
+    color: white;
+    border-color: var(--accent);
 }
 
-/* add button */
-#addSubstanceButton {
-    background: transparent;
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    padding: 6px 10px;
+button.primary:hover { 
+    background-color: #2563eb; 
+    border-color: #2563eb;
 }
 
-#addSubstanceButton:hover {
-    box-shadow: var(--glow);
-    background: var(--primary-soft);
+/* Stats List */
+.stat-item {
+    margin-bottom: 16px;
 }
 
-/* ========================= */
-/* Result table highlight   */
-/* ========================= */
-
-#resultTableBody tr:nth-child(odd) {
-    background: rgba(57, 255, 20, 0.03);
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
 }
 
-#resultTableBody td:last-child {
-    color: var(--primary);
+/* Extrem minimalistischer, dünner Fortschrittsbalken */
+.progress-bar-bg {
+    background-color: #1e293b;
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
 }
 
-/* ========================= */
-/* Canvas (chart)          */
-/* ========================= */
+.progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+/* Canvas-Bereiche */
+.visualization-area {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
 
 canvas {
-    background: radial-gradient(circle at center, rgba(57,255,20,0.05), transparent 70%);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
+    background-color: #141e30; /* Subtiler Kontrast zum Haupt-Hintergrund */
+    border-radius: 6px;
+    width: 100%;
+    display: block;
 }
 
-/* ========================= */
-/* Small glow animation     */
-/* ========================= */
-
-@keyframes pulseGlow {
-    0% { box-shadow: 0 0 5px rgba(57,255,20,0.2); }
-    50% { box-shadow: 0 0 18px rgba(57,255,20,0.35); }
-    100% { box-shadow: 0 0 5px rgba(57,255,20,0.2); }
+.canvas-container {
+    position: relative;
 }
 
-.card {
-    animation: pulseGlow 6s infinite ease-in-out;
+.canvas-label {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    pointer-events: none;
 }
