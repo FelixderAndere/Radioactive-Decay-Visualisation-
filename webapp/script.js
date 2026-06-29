@@ -1,12 +1,12 @@
 "use strict";
 
 /***************************************************
- * Radioactive Decay Simulator
- * (relative fractions only, stable version)
+ * Clean Input-Driven Decay Simulator
+ * UI = Input Layer only
  **************************************************/
 
 // ==============================
-// Initial system (fractions)
+// Model
 // ==============================
 
 let substances = {
@@ -43,26 +43,18 @@ const template = document.getElementById("substanceRowTemplate");
 
 const ctx = document.getElementById("decayChart").getContext("2d");
 
-let chart = new Chart(ctx, {
+const chart = new Chart(ctx, {
     type: "line",
-    data: {
-        labels: [],
-        datasets: []
-    },
+    data: { labels: [], datasets: [] },
     options: {
         responsive: true,
         animation: false,
-        scales: {
-            y: {
-                min: 0,
-                max: 1
-            }
-        }
+        scales: { y: { min: 0, max: 1 } }
     }
 });
 
 // ==============================
-// State
+// Simulation State
 // ==============================
 
 let simulator;
@@ -70,277 +62,162 @@ let currentTime = 0;
 let running = false;
 let speed = 1;
 
-let history = {
-    values: {}
-};
-
 // ==============================
-// MATRIX
+// INPUT STATE (IMPORTANT)
 // ==============================
 
-class Matrix {
-    constructor(n) {
-        this.n = n;
-        this.data = Array.from({ length: n }, () => Array(n).fill(0));
-    }
-
-    static identity(n) {
-        const m = new Matrix(n);
-        for (let i = 0; i < n; i++) m.data[i][i] = 1;
-        return m;
-    }
-}
-
-function add(A, B) {
-    const R = new Matrix(A.n);
-    for (let i = 0; i < A.n; i++)
-        for (let j = 0; j < A.n; j++)
-            R.data[i][j] = A.data[i][j] + B.data[i][j];
-    return R;
-}
-
-function multiply(A, B) {
-    const R = new Matrix(A.n);
-
-    for (let i = 0; i < A.n; i++) {
-        for (let j = 0; j < A.n; j++) {
-            let sum = 0;
-            for (let k = 0; k < A.n; k++) {
-                sum += A.data[i][k] * B.data[k][j];
-            }
-            R.data[i][j] = sum;
-        }
-    }
-
-    return R;
-}
-
-function scalar(A, s) {
-    const R = new Matrix(A.n);
-
-    for (let i = 0; i < A.n; i++)
-        for (let j = 0; j < A.n; j++)
-            R.data[i][j] = A.data[i][j] * s;
-
-    return R;
-}
-
-function matVec(M, v) {
-    const r = Array(M.n).fill(0);
-
-    for (let i = 0; i < M.n; i++)
-        for (let j = 0; j < M.n; j++)
-            r[i] += M.data[i][j] * v[j];
-
-    return r;
-}
+// zentrale Speicherung der UI-Eingaben
+let inputState = {};
 
 // ==============================
-// expm (Taylor approximation)
+// INIT INPUT STATE
 // ==============================
 
-function expm(A, steps = 18) {
-    const n = A.n;
-
-    let result = Matrix.identity(n);
-    let term = Matrix.identity(n);
-
-    for (let k = 1; k < steps; k++) {
-        term = multiply(term, scalar(A, 1 / k));
-        result = add(result, term);
-    }
-
-    return result;
-}
-
-// ==============================
-// Simulator
-// ==============================
-
-class DecaySimulator {
-
-    constructor(data) {
-
-        this.names = Object.keys(data);
-        this.idx = {};
-
-        this.names.forEach((n, i) => this.idx[n] = i);
-
-        this.data = structuredClone(data);
-        this.A = this.buildMatrix();
-    }
-
-    buildMatrix() {
-
-        const n = this.names.length;
-        const A = new Matrix(n);
-
-        for (const name of this.names) {
-
-            const j = this.idx[name];
-            const s = this.data[name];
-
-            const lambda = s.halfLife === Infinity
-                ? 0
-                : Math.log(2) / s.halfLife;
-
-            A.data[j][j] = -lambda;
-
-            for (const p in s.decayProducts) {
-
-                const i = this.idx[p];
-                A.data[i][j] += lambda * s.decayProducts[p];
-            }
-        }
-
-        return A;
-    }
-
-    vector() {
-        return this.names.map(n => this.data[n].value);
-    }
-
-    simulate(t) {
-
-        const expA = expm(this.A, 20);
-        const At = scalar(expA, t);
-
-        const v = matVec(At, this.vector());
-
-        // normalize (important: pure fractions)
-        const sum = v.reduce((a, b) => a + b, 0) || 1;
-
-        this.names.forEach((n, i) => {
-            this.data[n].value = v[i] / sum;
-        });
-
-        return this.data;
+function initInputState() {
+    for (const name in substances) {
+        inputState[name] = {
+            name,
+            value: substances[name].value,
+            halfLife: substances[name].halfLife,
+            decayProducts: substances[name].decayProducts
+        };
     }
 }
 
 // ==============================
-// UI
+// TABLE RENDER (ONLY ONCE / ADD / RESET)
 // ==============================
 
-function addRow(name, s) {
+function renderTable() {
+    tableBody.innerHTML = "";
 
-    const row = template.content.cloneNode(true);
-    const tr = row.querySelector("tr");
+    for (const name in inputState) {
+        createRow(name, inputState[name]);
+    }
+}
 
-    tr.querySelector(".nameInput").value = name;
-    tr.querySelector(".valueInput").value = s.value;
-    tr.querySelector(".halfLifeInput").value =
-        s.halfLife === Infinity ? "∞" : s.halfLife;
+function createRow(key, data) {
+    const node = template.content.cloneNode(true);
+    const tr = node.querySelector("tr");
 
-    tr.querySelector(".productsInput").value =
-        JSON.stringify(s.decayProducts);
+    const nameInput = tr.querySelector(".nameInput");
+    const valueInput = tr.querySelector(".valueInput");
+    const halfLifeInput = tr.querySelector(".halfLifeInput");
+    const productsInput = tr.querySelector(".productsInput");
+
+    nameInput.value = data.name;
+    valueInput.value = data.value;
+    halfLifeInput.value = data.halfLife === Infinity ? "∞" : data.halfLife;
+    productsInput.value = JSON.stringify(data.decayProducts);
+
+    // INPUT HANDLING → nur State aktualisieren, KEIN renderTable!
+    nameInput.oninput = () => updateStateFromRow(tr, key);
+    valueInput.oninput = () => updateStateFromRow(tr, key);
+    halfLifeInput.oninput = () => updateStateFromRow(tr, key);
+    productsInput.oninput = () => updateStateFromRow(tr, key);
 
     tr.querySelector(".deleteButton").onclick = () => {
-        tr.remove();
-        sync();
+        delete inputState[key];
+        rebuildModel();
         renderTable();
     };
-
-    tr.querySelectorAll("input, textarea").forEach(el => {
-        el.oninput = () => {
-            sync();
-            renderTable();
-        };
-    });
 
     tableBody.appendChild(tr);
 }
 
-function renderTable() {
+// ==============================
+// INPUT → STATE SYNC
+// ==============================
 
-    tableBody.innerHTML = "";
+function updateStateFromRow(row, oldKey) {
 
-    for (const n in substances) {
-        addRow(n, substances[n]);
+    const name = row.querySelector(".nameInput").value || oldKey;
+
+    let value = parseFloat(row.querySelector(".valueInput").value);
+    if (isNaN(value)) value = 0;
+
+    let halfLife = row.querySelector(".halfLifeInput").value;
+    halfLife = (halfLife === "∞") ? Infinity : parseFloat(halfLife);
+    if (isNaN(halfLife)) halfLife = Infinity;
+
+    let decayProducts = {};
+    try {
+        decayProducts = JSON.parse(row.querySelector(".productsInput").value || "{}");
+    } catch {
+        decayProducts = {};
     }
+
+    inputState[oldKey] = {
+        name,
+        value,
+        halfLife,
+        decayProducts
+    };
+
+    rebuildModel();
 }
 
 // ==============================
-// Sync UI → Model
+// STATE → MODEL
 // ==============================
 
-function sync() {
+function rebuildModel() {
 
-    const rows = tableBody.querySelectorAll("tr");
+    const newModel = {};
 
-    const newData = {};
-
-    rows.forEach(r => {
-
-        const name = r.querySelector(".nameInput").value;
-        if (!name) return;
-
-        let v = parseFloat(r.querySelector(".valueInput").value) || 0;
-
-        let hl = r.querySelector(".halfLifeInput").value;
-        hl = (hl === "∞") ? Infinity : parseFloat(hl);
-
-        let products = {};
-
-        try {
-            products = JSON.parse(r.querySelector(".productsInput").value || "{}");
-        } catch {}
-
-        newData[name] = {
-            value: v,
-            halfLife: hl,
-            decayProducts: products
+    for (const k in inputState) {
+        const s = inputState[k];
+        newModel[s.name] = {
+            value: s.value,
+            halfLife: s.halfLife,
+            decayProducts: s.decayProducts
         };
-    });
-
-    // normalize
-    const sum = Object.values(newData)
-        .reduce((a, s) => a + s.value, 0) || 1;
-
-    for (const k in newData) {
-        newData[k].value /= sum;
     }
 
-    substances = newData;
+    // normalize
+    const sum = Object.values(newModel).reduce((a, s) => a + s.value, 0) || 1;
+
+    for (const k in newModel) {
+        newModel[k].value /= sum;
+    }
+
+    substances = newModel;
     simulator = new DecaySimulator(substances);
 }
 
 // ==============================
-// Render Step
+// SIMULATION STEP
 // ==============================
 
 function step() {
 
     const v = simulator.simulate(currentTime);
-    const values = simulator.names.map(n => v[n].value);
+    const names = simulator.names;
 
-    // table
+    const values = names.map(n => v[n].value);
+
     resultBody.innerHTML = "";
 
-    values.forEach((val, i) => {
-
+    names.forEach((name, i) => {
         const tr = document.createElement("tr");
-
         tr.innerHTML = `
-            <td>${simulator.names[i]}</td>
-            <td>${val.toFixed(4)}</td>
-            <td>${(val * 100).toFixed(2)}%</td>
+            <td>${name}</td>
+            <td>${values[i].toFixed(4)}</td>
+            <td>${(values[i] * 100).toFixed(2)}%</td>
         `;
-
         resultBody.appendChild(tr);
     });
 
-    // chart (stable append only)
     chart.data.labels.push(currentTime.toFixed(1));
 
     if (chart.data.datasets.length === 0) {
-        chart.data.datasets = simulator.names.map(n => ({
+        chart.data.datasets = names.map(n => ({
             label: n,
             data: []
         }));
     }
 
-    simulator.names.forEach((n, i) => {
+    names.forEach((n, i) => {
         chart.data.datasets[i].data.push(values[i]);
     });
 
@@ -351,21 +228,19 @@ function step() {
 }
 
 // ==============================
-// Loop
+// LOOP
 // ==============================
 
 function loop() {
-
     if (running) {
         currentTime += 0.1 * speed;
         step();
     }
-
     requestAnimationFrame(loop);
 }
 
 // ==============================
-// Events
+// EVENTS
 // ==============================
 
 playButton.onclick = () => running = true;
@@ -379,10 +254,8 @@ resetButton.onclick = () => {
     chart.data.datasets.forEach(d => d.data = []);
     chart.update();
 
-    history = { values: {} };
-
-    simulator = new DecaySimulator(substances);
-
+    rebuildModel();
+    renderTable();
     step();
 };
 
@@ -397,18 +270,28 @@ speedSlider.oninput = () => {
 };
 
 addButton.onclick = () => {
-    addRow("X", { value: 0, halfLife: 1, decayProducts: {} });
-    sync();
+
+    const key = "X_" + Date.now();
+
+    inputState[key] = {
+        name: key,
+        value: 0,
+        halfLife: 1,
+        decayProducts: {}
+    };
+
+    rebuildModel();
     renderTable();
 };
 
 // ==============================
-// Init
+// INIT
 // ==============================
 
 function init() {
+    initInputState();
+    rebuildModel();
     renderTable();
-    sync();
     step();
     loop();
 }
