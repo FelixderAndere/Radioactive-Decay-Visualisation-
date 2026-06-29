@@ -1,5 +1,5 @@
 // Setup der initialen Substanzen (analog zum Beispiel)
-const initialSubstances = {
+let currentSubstancesData = {
     A: { value: 1.0, "half life": 5, "decay products": { B: 0.7, C: 0.3 } },
     B: { value: 0.0, "half life": 3, "decay products": { C: 1.0 } },
     C: { value: 0.0, "half life": 8, "decay products": { D: 1.0 } },
@@ -7,6 +7,7 @@ const initialSubstances = {
     E: { value: 0.0, "half life": Infinity, "decay products": {} }
 };
 
+// Falls dynamisch Farben hinzukommen, stellen wir sicher, dass das Objekt erweiterbar ist
 const colors = {
     A: '#ef4444',
     B: '#f97316',
@@ -15,8 +16,28 @@ const colors = {
     E: '#10b981'
 };
 
-// Initialisierungen
-const simulator = new DecaySimulator(initialSubstances);
+window.updateSimulationDataset = function(newDataset) {
+    isPlaying = false;
+    currentTime = 0;
+    btnPlay.innerText = "Start";
+    btnPlay.classList.add('primary');
+
+    currentSubstancesData = newDataset;
+    
+    // Simulator komplett neu instanziieren mit neuen Werten
+    simulator = new DecaySimulator(currentSubstancesData);
+    
+    // UI neu aufbauen
+    initStatsUI();
+    initParticles();
+    
+    const currentValues = simulator.getValuesAtTime(0);
+    updateStatsUI(currentValues);
+    drawParticles(currentValues);
+    drawChart();
+};
+
+let simulator = new DecaySimulator(currentSubstancesData);
 let currentTime = 0;
 let isPlaying = false;
 let animationFrameId = null;
@@ -68,8 +89,8 @@ function initParticles() {
 // Statistik HTML Struktur aufbauen
 function initStatsUI() {
     statsContainer.innerHTML = '';
-    Object.keys(initialSubstances).forEach(key => {
-        const hl = initialSubstances[key]["half life"];
+    Object.keys(currentSubstancesData).forEach(key => {
+        const hl = currentSubstancesData[key]["half life"];
         const hlText = hl === Infinity ? "∞" : `${hl}j`;
         
         const html = `
@@ -144,7 +165,7 @@ function drawChart() {
     cCtx.stroke();
 
     // Kurven zeichnen von 0 bis maxTime
-    const keys = Object.keys(initialSubstances);
+    const keys = Object.keys(currentSubstancesData);
     const steps = 100;
 
     keys.forEach(key => {
