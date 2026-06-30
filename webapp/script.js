@@ -51,13 +51,20 @@ let simulationAccumulator = 0;
 
 const maxTimeSlider = document.getElementById('max-time-input'); 
 const yearsMaxSpan = document.getElementById('years-max');
+const speedSlider = document.getElementById('speed-slider');
+const years_step = document.getElementById('years-step')
 
 let maxTime = parseFloat(maxTimeSlider.value) || 100;
-
-
 maxTimeSlider.addEventListener('input', function() {
     maxTime = parseFloat(this.value);
     yearsMaxSpan.innerText = maxTime.toFixed(2); 
+    
+    drawChart(); 
+}); 
+let time_step = parseFloat(speedSlider.value) || 1;
+speedSlider.addEventListener('input', function() {
+    time_step = parseFloat(this.value);
+    years_step.innerText = time_step.toFixed(2); 
     
     drawChart(); 
 }); 
@@ -67,7 +74,6 @@ maxTimeSlider.addEventListener('input', function() {
 const btnPlay = document.getElementById('btn-play');
 const btnReset = document.getElementById('btn-reset');
 const btnEdit = document.getElementById('btn-edit');
-const speedSlider = document.getElementById('speed-slider');
 const yearsVal = document.getElementById('years-val');
 const statsContainer = document.getElementById('stats-container');
 
