@@ -46,6 +46,18 @@ function renderAddRow() {
     }, 0);
 }
 
+function syncAddInfinity(event) {
+    const hlInput = document.getElementById("new-hl");
+
+    if (event.target.checked) {
+        hlInput.value = "∞";
+        hlInput.disabled = true;
+    } else {
+        hlInput.value = "";
+        hlInput.disabled = false;
+    }
+}
+
 function createAddRow() {
 
     return `

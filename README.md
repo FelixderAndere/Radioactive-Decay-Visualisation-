@@ -19,3 +19,11 @@ https://felixderandere.github.io/Radioactive-Decay-Visualisation/
 
 ![App Screenshot](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/image.png)
 
+## Features
+
+- Simulate the Decay for a given time.
+- Change simulation parameters like Atom amount or Step size.
+- Edit and configure your desired decay chain.
+- Visualization via an Atomic lattice and a Chart
+- Compare the theoretical and simulated chart.
+
