@@ -47,6 +47,7 @@ let lastTimestamp = 0;
 let latestValues = null;
 let graphMode = 'theoretical';
 let randomHistory = [];
+let simulationAccumulator = 0;
 
 const maxTimeSlider = document.getElementById('max-time-input'); 
 const yearsMaxSpan = document.getElementById('years-max');
@@ -246,33 +247,38 @@ function drawChart() {
 }
 
 // Haupt-Animationsloop
-function loop(timestamp) {
-    if(!lastTimestamp) lastTimestamp = timestamp;
-    const delta = (timestamp - lastTimestamp) / 1000; // in Sekunden
-    lastTimestamp = timestamp;
+function loop() {
 
-    if(isPlaying) {
-        const speed = parseFloat(speedSlider.value);
-        const stepYears = Math.min(delta * speed, maxTime - currentTime);
-        currentTime += stepYears;
+    if (isPlaying) {
 
-        if(currentTime >= maxTime) {
-            currentTime = maxTime;
-            isPlaying = false;
-            btnPlay.innerText = "Start";
+        const stepYears = parseFloat(speedSlider.value);
+
+        if (currentTime < maxTime) {
+
+            const dt = Math.min(stepYears, maxTime - currentTime);
+
+            currentTime += dt;
+
+            latestValues = simulator.simulate(dt);
+
+            addRandomHistoryPoint(currentTime, latestValues);
+
+            updateStatsUI(latestValues);
+            drawParticles(latestValues);
+            drawChart();
         }
 
-        // Live-Simulation: einzelne Atome zerfallen mit Wahrscheinlichkeit statt exakt nach Erwartungswert.
-        const currentValues = simulator.simulate(stepYears);
-        latestValues = currentValues;
-        addRandomHistoryPoint(currentTime, currentValues);
+        if (currentTime >= maxTime) {
 
-        updateStatsUI(currentValues);
-        drawParticles(currentValues);
-        drawChart();
+            currentTime = maxTime;
+            isPlaying = false;
+
+            btnPlay.innerText = "Start";
+            btnPlay.classList.add("primary");
+        }
     }
 
-    animationFrameId = requestAnimationFrame(loop);
+    requestAnimationFrame(loop);
 }
 
 // Resize Handlers für responsive Canvas-Auflösung
@@ -292,6 +298,7 @@ function resizeCanvases() {
 btnPlay.addEventListener('click', () => {
     if(currentTime >= maxTime) {
         currentTime = 0;
+        simulationAccumulator = 0;
         simulator.reset();
         latestValues = simulator.getValuesAtTime(0);
         resetRandomHistory(latestValues);
@@ -304,6 +311,7 @@ btnPlay.addEventListener('click', () => {
 btnReset.addEventListener('click', () => {
     isPlaying = false;
     currentTime = 0;
+    simulationAccumulator = 0;
     btnPlay.innerText = "Start";
     btnPlay.classList.add('primary');
     simulator.reset();
