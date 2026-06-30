@@ -149,6 +149,7 @@ class DecaySimulator {
         this.initialSubstances = structuredClone(substances);
         this.substances = structuredClone(substances);
         this.particleCount = options.particleCount ?? 800;
+        console.log("particleCount", this.particleCount);
         this.random = options.random ?? Math.random;
 
         const { names, idx, values, A, decayInfo } = this.decayMatrix(this.substances);

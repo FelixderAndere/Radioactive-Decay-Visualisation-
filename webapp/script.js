@@ -1,4 +1,4 @@
-// Setup der initialen Substanzen (analog zum Beispiel)
+
 let currentSubstancesData = {
     A: { value: 1.0, "half life": 5, "decay products": { B: 0.7, C: 0.3 } },
     B: { value: 0.0, "half life": 3, "decay products": { C: 1.0 } },
@@ -7,7 +7,6 @@ let currentSubstancesData = {
     E: { value: 0.0, "half life": Infinity, "decay products": {} }
 };
 
-// Falls dynamisch Farben hinzukommen, stellen wir sicher, dass das Objekt erweiterbar ist
 const colors = {
     A: '#ef4444',
     B: '#f97316',
@@ -24,10 +23,8 @@ window.updateSimulationDataset = function(newDataset) {
 
     currentSubstancesData = newDataset;
     
-    // Simulator komplett neu instanziieren mit neuen Werten
-    simulator = new DecaySimulator(currentSubstancesData);
+    simulator = new DecaySimulator(currentSubstancesData, options = { particleCount: particleCount});
     
-    // UI neu aufbauen
     initStatsUI();
     initParticles();
     
@@ -39,7 +36,30 @@ window.updateSimulationDataset = function(newDataset) {
     drawChart();
 };
 
-let simulator = new DecaySimulator(currentSubstancesData);
+
+// update particles
+let particleCount = parseInt(document.getElementById('count-slider').value) || 100;
+document.getElementById('count-slider').addEventListener('input', function () {
+    particleCount = parseInt(this.value);
+
+    document.getElementById('particleCount-label').innerText = particleCount;
+
+    simulator = new DecaySimulator(currentSubstancesData, {
+        particleCount
+    });
+
+    currentTime = 0;
+    latestValues = simulator.getValuesAtTime(0);
+
+    initParticles();
+    resetRandomHistory(latestValues);
+    updateStatsUI(latestValues);
+    drawParticles(latestValues);
+    drawChart();
+});
+
+
+let simulator = new DecaySimulator(currentSubstancesData, options = { particleCount: particleCount});
 let currentTime = 0;
 let isPlaying = false;
 let animationFrameId = null;
@@ -70,7 +90,7 @@ speedSlider.addEventListener('input', function() {
 }); 
 
 
-// UI Elemente
+// UI elements
 const btnPlay = document.getElementById('btn-play');
 const btnReset = document.getElementById('btn-reset');
 const btnEdit = document.getElementById('btn-edit');
@@ -85,23 +105,22 @@ const cCtx = chartCanvas.getContext('2d');
 const graphTheoreticalBtn = document.getElementById('graph-theoretical');
 const graphRandomBtn = document.getElementById('graph-random');
 
-// Erstelle Atome/Partikel für die grafische Darstellung
 const particles = [];
-const numParticles = 800; // Anzahl der Punkte im Gitter
+const numParticles = particleCount; 
 
 function initParticles() {
     particles.length = 0;
-    for(let i=0; i<numParticles; i++) {
+    for(let i=0; i<particleCount; i++) {
         particles.push({
             x: Math.random() * particleCanvas.width,
             y: Math.random() * particleCanvas.height,
-            // Zufälliger Schwellenwert für die Zuweisung des Typs basierend auf Wahrscheinlichkeiten
             randValue: Math.random() 
         });
     }
 }
 
-// Statistik HTML Struktur aufbauen
+
+
 function initStatsUI() {
     statsContainer.innerHTML = '';
     Object.keys(currentSubstancesData).forEach(key => {
@@ -126,7 +145,6 @@ function initStatsUI() {
     });
 }
 
-// UI & Bars updaten
 function updateStatsUI(currentValues) {
     Object.entries(currentValues).forEach(([key, val]) => {
         const pct = (val * 100).toFixed(1);
@@ -136,11 +154,9 @@ function updateStatsUI(currentValues) {
     yearsVal.innerText = currentTime.toFixed(2);
 }
 
-// Zeichnet die Atome als Punkte, deren Verteilung den mathematischen Werten gleicht
 function drawParticles(currentValues) {
     pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
     
-    // Grenzen für Partikel-Zuweisung berechnen
     const keys = Object.keys(currentValues);
     const thresholds = [];
     let cumulative = 0;
@@ -151,7 +167,7 @@ function drawParticles(currentValues) {
     });
 
     particles.forEach(p => {
-        let type = keys[keys.length - 1]; // Fallback auf das letzte Element
+        let type = keys[keys.length - 1]; 
         for(let t of thresholds) {
             if(p.randValue <= t.limit) {
                 type = t.key;
@@ -187,14 +203,12 @@ function setGraphMode(mode) {
     drawChart();
 }
 
-// Verlaufschart im unteren Canvas zeichnen
 function drawChart() {
     cCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
     const padding = 30;
     const w = chartCanvas.width - padding * 2;
     const h = chartCanvas.height - padding * 2;
 
-    // Achsen zeichnen
     cCtx.strokeStyle = '#334155';
     cCtx.lineWidth = 1;
     cCtx.beginPath();
@@ -203,7 +217,6 @@ function drawChart() {
     cCtx.lineTo(chartCanvas.width - padding, chartCanvas.height - padding);
     cCtx.stroke();
 
-    // Kurven zeichnen von 0 bis maxTime
     const keys = Object.keys(currentSubstancesData);
     const steps = 100;
     const timeScale = maxTime || 1;
@@ -226,7 +239,7 @@ function drawChart() {
         } else {
             for(let i = 0; i <= steps; i++) {
                 const t = (i / steps) * maxTime;
-                if (t > currentTime) break; // Zeichne nur bis zur aktuellen Zeit
+                if (t > currentTime) break;
 
                 const vals = simulator.getValuesAtTime(t);
                 const cx = padding + (t / timeScale) * w;
@@ -239,7 +252,6 @@ function drawChart() {
         cCtx.stroke();
     });
 
-    // Aktuelle Zeit-Linie (Cursor)
     const cursorX = padding + (currentTime / timeScale) * w;
     if(cursorX <= padding + w) {
         cCtx.strokeStyle = 'rgba(255,255,255,0.4)';
@@ -252,7 +264,6 @@ function drawChart() {
     }
 }
 
-// Haupt-Animationsloop
 function loop() {
 
     if (isPlaying) {
@@ -287,7 +298,6 @@ function loop() {
     requestAnimationFrame(loop);
 }
 
-// Resize Handlers für responsive Canvas-Auflösung
 function resizeCanvases() {
     const pRect = particleCanvas.getBoundingClientRect();
     particleCanvas.width = pRect.width;
@@ -346,5 +356,4 @@ updateStatsUI(initialVals);
 drawParticles(initialVals);
 drawChart();
 
-// Start the loop
 animationFrameId = requestAnimationFrame(loop);
