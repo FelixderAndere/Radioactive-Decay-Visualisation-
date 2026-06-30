@@ -11,21 +11,21 @@
 <body>
 
     <header>
-        <h1>Radioaktiver Zerfall</h1>
-        <p>Visuelle Simulation von radioaktiven Zerfallsketten</p>
+        <h1>Radioactive Decay Visualisation</h1>
+        <p>Visual simulation of radioactive decay chains.</p>
     </header>
 
     <div class="container">
         <div class="panel">
             <div style="display: flex; justify-content: space-between;">
                 <div class="control-group">
-                    <label for="max-time-input">Maximale Zeit</label>
-                    <div class="time-display"><span id="years-max">100.00</span> Jahre</div>
+                    <label for="max-time-input">Maximum Time</label>
+                    <div class="time-display"><span id="years-max">100.00</span> years</div>
                     
                 </div>
                 <div class="control-group">
-                    <label style="text-align: end;">Simulierte Zeit</label>
-                    <div class="time-display"><span id="years-val">0.00</span> Jahre</div>
+                    <label style="text-align: end;">Simulated Time</label>
+                    <div class="time-display"><span id="years-val">0.00</span> years</div>
                 </div>
             </div>
 
@@ -47,8 +47,8 @@
 
             <div class="control-group">
                 <div style="display: flex;justify-content: space-between; align-items: center;">
-                    <label for="speed-slider">Simulationsschritte</label>
-                    <div><span id="years-step">1.00</span> Jahre</div>
+                    <label for="speed-slider">Simulation steps</label>
+                    <div><span id="years-step">1.00</span> years</div>
                 </div>
                 <input type="range" id="speed-slider" min="0.01" max="5" step="0.01" value="1" style="width:100%">
             </div>
@@ -57,8 +57,8 @@
 
             <div class="substances">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3>Substanzen & Anteile</h3>
-                    <button id="btn-edit" style="height: 34.5px;">Bearbeiten</button>
+                    <h3>Substanzes & fractions</h3>
+                    <button id="btn-edit" style="height: 34.5px;">Edit</button>
                 </div>
                 <div id="stats-container"></div>
             </div>            
@@ -66,16 +66,16 @@
 
         <div class="visualization-area">
             <div class="canvas-container">
-                <div class="canvas-label">Atomgitter (Zustandswechsel)</div>
+                <div class="canvas-label">Atomic lattice (phase transition)</div>
                 <canvas id="particle-canvas" height="300"></canvas>
             </div>
             
             <div class="canvas-container">
                 <div class="canvas-toolbar">
-                    <div class="canvas-label">Verlaufskurve</div>
+                    <div class="canvas-label">Chart</div>
                     <div class="segmented-control" aria-label="Graph-Daten">
-                        <button id="graph-theoretical" class="active" type="button">Theorie</button>
-                        <button id="graph-random" type="button">Zufall</button>
+                        <button id="graph-theoretical" class="active" type="button">Theory</button>
+                        <button id="graph-random" type="button">Random</button>
                     </div>
                 </div>
                 <canvas id="chart-canvas" height="220"></canvas>
@@ -88,7 +88,7 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <h2>Simulation bearbeiten</h2>
+                <h2>Edit substances and their fractions</h2>
 
                 <button
                     id="modal-close-x"
@@ -105,7 +105,7 @@
 
                 <div>
 
-                    <h3>Neue Substanz</h3>
+                    <h3>New substance</h3>
 
                     <div class="add-substance-grid">
 
@@ -118,7 +118,7 @@
                         </div>
 
                         <div>
-                            <label>Halbwertszeit</label>
+                            <label>Half-life</label>
                             <input
                                 id="new-substance-hl"
                                 type="text"
@@ -126,7 +126,7 @@
                         </div>
 
                         <div>
-                            <label>Startwert</label>
+                            <label>Start value</label>
                             <input
                                 id="new-substance-val"
                                 type="number"
@@ -151,13 +151,13 @@
             <div class="modal-footer">
 
                 <button id="modal-cancel-btn">
-                    Abbrechen
+                    Cancel
                 </button>
 
                 <button
                     id="modal-save-btn"
                     class="primary">
-                    Speichern
+                    Save
                 </button>
 
             </div>

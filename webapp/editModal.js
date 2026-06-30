@@ -35,17 +35,17 @@ function renderModalSubstances() {
 
     substancesContainer.innerHTML = `
         <h3 style="margin-bottom:18px;">
-            Bestehende Substanzen
+            Existing substances
         </h3>
 
         <div class="modal-table">
 
             <div class="modal-table-header">
                 <div>Name</div>
-                <div>Halbwertszeit</div>
+                <div>Half-life</div>
                 <div>∞</div>
-                <div>Startwert</div>
-                <div>Zerfallsprodukte</div>
+                <div>Start value</div>
+                <div>Decay product</div>
             </div>
 
             <div id="modal-table-body"></div>
@@ -135,14 +135,14 @@ btnAddSubstance.addEventListener("click", () => {
     let hl = hlInput.value.trim();
     const val = parseFloat(valInput.value) || 0.0;
 
-    if (!name) return alert("Bitte einen Namen eingeben!");
+    if (!name) return alert("Please enter a valid substance name!");
     if (localSubstances[name]) return alert("Substanz existiert bereits!");
 
     if (hl.toLowerCase() === "infinity" || hl === "∞") {
         hl = "Infinity";
     } else {
         hl = parseFloat(hl);
-        if (isNaN(hl) || hl <= 0) return alert("Ungültige Halbwertszeit!");
+        if (isNaN(hl) || hl <= 0) return alert("Invalid half-life!");
     }
 
     if (!colors[name]) {

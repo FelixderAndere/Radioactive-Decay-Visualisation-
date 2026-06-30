@@ -114,7 +114,7 @@ function initStatsUI() {
         const html = `
             <div class="stat-item" id="stat-${key}">
                 <div class="stat-header">
-                    <span class="color-${key}">Substanz ${key} <small style="color:var(--text-muted)">(t½: ${hlText}) (Zerfall: ${dptext})</small></span>
+                    <span class="color-${key}">Substance ${key} <small style="color:var(--text-muted)">(t½: ${hlText}) (Decay: ${dptext})</small></span>
                     <span id="pct-${key}">0.0%</span>
                 </div>
                 <div class="progress-bar-bg">
