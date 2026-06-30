@@ -60,7 +60,7 @@ function renderModalSubstances() {
         const sub = localSubstances[key];
 
         const displayHL =
-            sub["half life"] === Infinity
+            sub["half life"] === "Infinity"
                 ? "Infinity"
                 : sub["half life"];
 
@@ -93,7 +93,7 @@ function renderModalSubstances() {
                     <input
                         type="checkbox"
                         id="infinite-check-${key}"
-                        ${sub["half life"] === Infinity ? "checked" : ""}>
+                        ${sub["half life"] === "Infinity" ? "checked" : ""}>
 
                 </div>
 
@@ -139,7 +139,7 @@ btnAddSubstance.addEventListener("click", () => {
     if (localSubstances[name]) return alert("Substanz existiert bereits!");
 
     if (hl.toLowerCase() === "infinity" || hl === "∞") {
-        hl = Infinity;
+        hl = "Infinity";
     } else {
         hl = parseFloat(hl);
         if (isNaN(hl) || hl <= 0) return alert("Ungültige Halbwertszeit!");
@@ -188,7 +188,7 @@ btnSave.addEventListener("click", () => {
     document.querySelectorAll(".input-hl").forEach(input => {
         const key = input.getAttribute("data-key");
         let val = input.value.trim();
-        localSubstances[key]["half life"] = (val.toLowerCase() === 'infinity' || val === '∞') ? Infinity : parseFloat(val);
+        localSubstances[key]["half life"] = (val.toLowerCase() === 'infinity' || val === '∞') ? "Infinity" : parseFloat(val);
     });
 
     // Collect edited Initial values data changes
