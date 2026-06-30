@@ -15,7 +15,7 @@ https://felixderandere.github.io/Radioactive-Decay-Visualisation/
 - Python cli
 - Webapp
 
-## Screenshots
+## Screenshot
 
-![App Screenshot](https://dummyimage.com/468x300?text=App+Screenshot+Here)
+![App Screenshot](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/image.png)
 
