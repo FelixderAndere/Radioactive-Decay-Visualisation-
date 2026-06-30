@@ -106,7 +106,7 @@ function initStatsUI() {
     statsContainer.innerHTML = '';
     Object.keys(currentSubstancesData).forEach(key => {
         const hl = currentSubstancesData[key]["half life"];
-        const hlText = hl === Infinity ? "∞" : `${hl}j`;
+        const hlText = hl === Infinity ? "∞" : `${hl} j`;
         const dp = currentSubstancesData[key]["decay products"];
         // Convert fraction value back to clean legible percentage layout representation
         const dptext = Object.entries(dp).map(([k, v]) => `${k}: ${(v * 100).toFixed(0)}%`).join(", ");

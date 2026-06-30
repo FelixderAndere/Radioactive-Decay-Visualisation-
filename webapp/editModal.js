@@ -18,7 +18,7 @@ btnModalEdit.addEventListener("click", () => {
     console.log("currentSubstancesData", currentSubstancesData);
     localSubstances = JSON.parse(JSON.stringify(currentSubstancesData, (key, value) => {
         if (value === Infinity) {
-            return "Infinity";
+            return "∞";
         }
         return value;
     }));
@@ -60,8 +60,8 @@ function renderModalSubstances() {
         const sub = localSubstances[key];
 
         const displayHL =
-            sub["half life"] === "Infinity"
-                ? "Infinity"
+            sub["half life"] === "∞"
+                ? "∞"
                 : sub["half life"];
 
         const decayString = Object.entries(
@@ -93,7 +93,7 @@ function renderModalSubstances() {
                     <input
                         type="checkbox"
                         id="infinite-check-${key}"
-                        ${sub["half life"] === "Infinity" ? "checked" : ""}>
+                        ${sub["half life"] === "∞" ? "checked" : ""}>
 
                 </div>
 
@@ -138,8 +138,7 @@ btnAddSubstance.addEventListener("click", () => {
     if (!name) return alert("Please enter a valid substance name!");
     if (localSubstances[name]) return alert("Substanz existiert bereits!");
 
-    if (hl.toLowerCase() === "infinity" || hl === "∞") {
-        hl = "Infinity";
+    if (hl === "∞") {
     } else {
         hl = parseFloat(hl);
         if (isNaN(hl) || hl <= 0) return alert("Invalid half-life!");
@@ -176,7 +175,7 @@ const addInfiniteCheckboxListener = (checkbox) => {
         const key = checkbox.id.replace("infinite-check-", "");
         const hlInput = document.querySelector(`.input-hl[data-key="${key}"]`);
         if (event.target.checked) {
-            hlInput.value = "Infinity";
+            hlInput.value = "∞";
         } else {
             hlInput.value = 1;
         }
@@ -188,7 +187,7 @@ btnSave.addEventListener("click", () => {
     document.querySelectorAll(".input-hl").forEach(input => {
         const key = input.getAttribute("data-key");
         let val = input.value.trim();
-        localSubstances[key]["half life"] = (val.toLowerCase() === 'infinity' || val === '∞') ? "Infinity" : parseFloat(val);
+        localSubstances[key]["half life"] = (val === '∞') ? "∞" : parseFloat(val);
     });
 
     // Collect edited Initial values data changes
