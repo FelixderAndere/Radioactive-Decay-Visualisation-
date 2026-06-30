@@ -100,8 +100,7 @@ const statsContainer = document.getElementById('stats-container');
 // Canvas Setup
 const particleCanvas = document.getElementById('particle-canvas');
 const pCtx = particleCanvas.getContext('2d');
-const chartCanvas = document.getElementById('chart-canvas');
-const cCtx = chartCanvas.getContext('2d');
+const chartPlot = document.getElementById('chart-plot');
 const graphTheoreticalBtn = document.getElementById('graph-theoretical');
 const graphRandomBtn = document.getElementById('graph-random');
 
@@ -204,64 +203,97 @@ function setGraphMode(mode) {
 }
 
 function drawChart() {
-    cCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
-    const padding = 30;
-    const w = chartCanvas.width - padding * 2;
-    const h = chartCanvas.height - padding * 2;
-
-    cCtx.strokeStyle = '#334155';
-    cCtx.lineWidth = 1;
-    cCtx.beginPath();
-    cCtx.moveTo(padding, padding);
-    cCtx.lineTo(padding, chartCanvas.height - padding);
-    cCtx.lineTo(chartCanvas.width - padding, chartCanvas.height - padding);
-    cCtx.stroke();
+    if (typeof Plotly === 'undefined') {
+        return;
+    }
 
     const keys = Object.keys(currentSubstancesData);
     const steps = 100;
-    const timeScale = maxTime || 1;
+    const visibleTime = Math.min(currentTime, maxTime);
 
-    keys.forEach(key => {
-        cCtx.beginPath();
-        cCtx.strokeStyle = colors[key];
-        cCtx.lineWidth = 2;
-
+    const traces = keys.map(key => {
         if (graphMode === 'random') {
-            randomHistory.forEach((point, i) => {
-                if (point.time > currentTime) return;
+            const visiblePoints = randomHistory.filter(point => point.time <= visibleTime);
 
-                const cx = padding + (point.time / timeScale) * w;
-                const cy = (chartCanvas.height - padding) - ((point.values[key] || 0) * h);
-
-                if(i === 0) cCtx.moveTo(cx, cy);
-                else cCtx.lineTo(cx, cy);
-            });
-        } else {
-            for(let i = 0; i <= steps; i++) {
-                const t = (i / steps) * maxTime;
-                if (t > currentTime) break;
-
-                const vals = simulator.getValuesAtTime(t);
-                const cx = padding + (t / timeScale) * w;
-                const cy = (chartCanvas.height - padding) - (vals[key] * h);
-
-                if(i === 0) cCtx.moveTo(cx, cy);
-                else cCtx.lineTo(cx, cy);
-            }
+            return {
+                x: visiblePoints.map(point => point.time),
+                y: visiblePoints.map(point => point.values[key] || 0),
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: `Substance ${key}`,
+                line: { color: colors[key], width: 2 },
+                marker: { color: colors[key], size: 4 },
+                hovertemplate: 'Time: %{x:.2f} years<br>Fraction: %{y:.3f}<extra></extra>'
+            };
         }
-        cCtx.stroke();
+
+        const x = [];
+        const y = [];
+
+        for(let i = 0; i <= steps; i++) {
+            const t = (i / steps) * maxTime;
+            if (t > visibleTime) break;
+
+            const vals = simulator.getValuesAtTime(t);
+            x.push(t);
+            y.push(vals[key]);
+        }
+
+        return {
+            x,
+            y,
+            type: 'scatter',
+            mode: 'lines',
+            name: `Substance ${key}`,
+            line: { color: colors[key], width: 2 },
+            hovertemplate: 'Time: %{x:.2f} years<br>Fraction: %{y:.3f}<extra></extra>'
+        };
     });
 
-    const cursorX = padding + (currentTime / timeScale) * w;
-    if(cursorX <= padding + w) {
-        cCtx.strokeStyle = 'rgba(255,255,255,0.4)';
-        cCtx.setLineDash([4, 4]);
-        cCtx.beginPath();
-        cCtx.moveTo(cursorX, padding);
-        cCtx.lineTo(cursorX, chartCanvas.height - padding);
-        cCtx.stroke();
-        cCtx.setLineDash([]);
-    }
+    const layout = {
+        paper_bgcolor: '#141e30',
+        plot_bgcolor: '#141e30',
+        uirevision: `${graphMode}-${maxTime}`,
+        margin: { l: 58, r: 20, t: 12, b: 54 },
+        font: { color: '#f8fafc', family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
+        legend: { orientation: 'h', x: 0, y: 1.12, bgcolor: 'rgba(20, 30, 48, 0)' },
+        xaxis: {
+            title: { text: 'Time (years)' },
+            range: [0, maxTime || 1],
+            gridcolor: '#26364f',
+            zerolinecolor: '#334155',
+            linecolor: '#334155',
+            tickcolor: '#334155'
+        },
+        yaxis: {
+            title: { text: 'Fraction of atoms' },
+            range: [0, 1],
+            gridcolor: '#26364f',
+            zerolinecolor: '#334155',
+            linecolor: '#334155',
+            tickcolor: '#334155'
+        },
+        shapes: [{
+            type: 'line',
+            x0: visibleTime,
+            x1: visibleTime,
+            y0: 0,
+            y1: 1,
+            xref: 'x',
+            yref: 'y',
+            line: { color: 'rgba(255,255,255,0.45)', width: 1, dash: 'dash' }
+        }]
+    };
+
+    const config = {
+        responsive: true,
+        scrollZoom: true,
+        displayModeBar: true,
+        modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+        displaylogo: false
+    };
+
+    Plotly.react(chartPlot, traces, layout, config);
 }
 
 function loop() {
@@ -301,13 +333,13 @@ function loop() {
 function resizeCanvases() {
     const pRect = particleCanvas.getBoundingClientRect();
     particleCanvas.width = pRect.width;
-    
-    const cRect = chartCanvas.getBoundingClientRect();
-    chartCanvas.width = cRect.width;
 
     initParticles();
     const currentValues = latestValues || simulator.getValuesAtTime(currentTime);
     drawParticles(currentValues);
+    if (typeof Plotly !== 'undefined') {
+        Plotly.Plots.resize(chartPlot);
+    }
     drawChart();
 }
 
@@ -346,7 +378,6 @@ window.addEventListener('resize', resizeCanvases);
 
 initStatsUI();
 particleCanvas.width = particleCanvas.offsetWidth;
-chartCanvas.width = chartCanvas.offsetWidth;
 initParticles();
 
 const initialVals = simulator.getValuesAtTime(0);

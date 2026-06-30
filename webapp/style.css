@@ -155,6 +155,22 @@ canvas {
     display: block;
 }
 
+.plotly-chart {
+    width: 100%;
+    height: 320px;
+    background-color: #141e30;
+    border-radius: 6px;
+}
+
+.plotly-chart .modebar {
+    top: 6px !important;
+    right: 6px !important;
+}
+
+.plotly-chart .modebar-btn path {
+    fill: #cbd5e1;
+}
+
 .canvas-container {
     position: relative;
     background-color: #141e30;
