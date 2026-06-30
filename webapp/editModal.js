@@ -15,8 +15,14 @@ btnModalEdit.addEventListener("click", () => {
         document.getElementById('btn-play').click();
     }
     
-    // Deep copy current active state properties
-    localSubstances = JSON.parse(JSON.stringify(currentSubstancesData));
+    console.log("currentSubstancesData", currentSubstancesData);
+    localSubstances = JSON.parse(JSON.stringify(currentSubstancesData, (key, value) => {
+        if (value === Infinity) {
+            return "Infinity";
+        }
+        return value;
+    }));
+    console.log("localSubstances", localSubstances);
     renderModalSubstances();
     modal.style.display = "block";
 });
@@ -30,6 +36,7 @@ function renderModalSubstances() {
     
     Object.keys(localSubstances).forEach(key => {
         const sub = localSubstances[key];
+        const infinite = sub["half life"] === Infinity ? true : false;
         const displayHL = sub["half life"] === Infinity ? "Infinity" : sub["half life"];
         
         // Convert decay products object to a comma-separated string (e.g., "B: 0.7, C: 0.3")
@@ -45,8 +52,8 @@ function renderModalSubstances() {
                     <label style="font-size: 0.75rem; color: #94a3b8; display: block;">Halbwertszeit</label>
                     <input type="text" class="input-hl" data-key="${key}" value="${displayHL}" style="width:100%; padding: 4px; background:#1e293b; color:#fff; border:1px solid #475569; border-radius:4px;">
                     <div style="display: flex">
-                        <input type="checkbox" id="infinite-check" />  
-                        <label for="infinite-check">Infinite</label> 
+                        <input type="checkbox" id="infinite-check-${key}" value="${infinite}" />  
+                        <label for="infinite-check-${key}">Infinite</label> 
                     </div>
                     </div>
                 
@@ -62,6 +69,9 @@ function renderModalSubstances() {
             </div>
         `;
         substancesContainer.insertAdjacentHTML('beforeend', html);
+
+        const infiniteCheckbox = document.getElementById(`infinite-check-${key}`);
+        addInfiniteCheckboxListener(infiniteCheckbox);
     });
 }
 
@@ -110,6 +120,18 @@ btnAddSubstance.addEventListener("click", () => {
     // Refresh modal lists
     renderModalSubstances();
 });
+
+const addInfiniteCheckboxListener = (checkbox) => {
+    checkbox.addEventListener("change", (event) => {
+        const key = checkbox.id.replace("infinite-check-", "");
+        const hlInput = document.querySelector(`.input-hl[data-key="${key}"]`);
+        if (event.target.checked) {
+            hlInput.value = "Infinity";
+        } else {
+            hlInput.value = 1;
+        }
+    });
+};
 
 btnSave.addEventListener("click", () => {
     // Collect edited dynamic Half Life data changes
