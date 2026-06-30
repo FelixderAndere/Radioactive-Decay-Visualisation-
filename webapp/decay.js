@@ -202,7 +202,7 @@ class DecaySimulator {
         for (const [name, data] of Object.entries(substances)) {
             const j = idx[name];
             const T = data["half life"];
-            const lambda = (T === Infinity) ? 0 : Math.log(2) / T;
+            const lambda = (T === "∞") ? 0 : Math.log(2) / T;
 
             A[j][j] = -lambda;
             decayInfo[name] = {

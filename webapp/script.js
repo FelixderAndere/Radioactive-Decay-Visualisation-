@@ -4,7 +4,7 @@ let currentSubstancesData = {
     B: { value: 0.0, "half life": 3, "decay products": { C: 1.0 } },
     C: { value: 0.0, "half life": 8, "decay products": { D: 1.0 } },
     D: { value: 0.0, "half life": 1, "decay products": { E: 1.0 } },
-    E: { value: 0.0, "half life": Infinity, "decay products": {} }
+    E: { value: 0.0, "half life": "∞", "decay products": {} }
 };
 
 const colors = {
@@ -125,7 +125,7 @@ function initStatsUI() {
     statsContainer.innerHTML = '';
     Object.keys(currentSubstancesData).forEach(key => {
         const hl = currentSubstancesData[key]["half life"];
-        const hlText = hl === Infinity ? "∞" : `${hl} j`;
+        const hlText = hl === "∞" ? "∞" : `${hl} j`;
         const dp = currentSubstancesData[key]["decay products"];
         // Convert fraction value back to clean legible percentage layout representation
         const dptext = Object.entries(dp).map(([k, v]) => `${k}: ${(v * 100).toFixed(0)}%`).join(", ");

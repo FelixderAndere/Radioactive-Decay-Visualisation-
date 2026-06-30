@@ -18,7 +18,7 @@ btnModalEdit.addEventListener("click", () => {
     
     console.log("currentSubstancesData", currentSubstancesData);
     localSubstances = JSON.parse(JSON.stringify(currentSubstancesData, (key, value) => {
-        if (value === Infinity) {
+        if (value === "∞") {
             return "∞";
         }
         return value;
