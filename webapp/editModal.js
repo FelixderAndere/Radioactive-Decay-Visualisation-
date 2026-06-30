@@ -32,47 +32,97 @@ const closeModal = () => {
 };
 
 function renderModalSubstances() {
-    substancesContainer.innerHTML = '<h3 style="margin-bottom: 12px;">Bestehende Substanzen bearbeiten</h3>';
-    
-    Object.keys(localSubstances).forEach(key => {
-        const sub = localSubstances[key];
-        const infinite = sub["half life"] === Infinity ? true : false;
-        const displayHL = sub["half life"] === Infinity ? "Infinity" : sub["half life"];
-        
-        // Convert decay products object to a comma-separated string (e.g., "B: 0.7, C: 0.3")
-        const decayString = Object.entries(sub["decay products"])
-            .map(([k, v]) => `${k}: ${v}`)
-            .join(", ");
 
-        const html = `
-            <div class="modal-substance-row" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px;">
-                <span style="font-weight: bold; width: 30px; color: ${colors[key] || '#fff'}">${key}:</span>
-                
-                <div style="flex: 1; min-width: 100px;">
-                    <label style="font-size: 0.75rem; color: #94a3b8; display: block;">Halbwertszeit</label>
-                    <input type="text" class="input-hl" data-key="${key}" value="${displayHL}" style="width:100%; padding: 4px; background:#1e293b; color:#fff; border:1px solid #475569; border-radius:4px;">
-                    <div style="display: flex">
-                        <input type="checkbox" id="infinite-check-${key}" value="${infinite}" />  
-                        <label for="infinite-check-${key}">Infinite</label> 
-                    </div>
-                    </div>
-                
-                <div style="flex: 1; min-width: 100px;">
-                    <label style="font-size: 0.75rem; color: #94a3b8; display: block;">Start-Anteil</label>
-                    <input type="number" step="0.01" min="0" max="1" class="input-val" data-key="${key}" value="${sub.value}" style="width:100%; padding: 4px; background:#1e293b; color:#fff; border:1px solid #475569; border-radius:4px;">
-                </div>
+    substancesContainer.innerHTML = `
+        <h3 style="margin-bottom:18px;">
+            Bestehende Substanzen
+        </h3>
 
-                <div style="flex: 2; min-width: 200px;">
-                    <label style="font-size: 0.75rem; color: #94a3b8; display: block;">Zerfallsprodukte (Format: B: 0.7, C: 0.3)</label>
-                    <input type="text" class="input-decay-list" data-key="${key}" value="${decayString}" placeholder="z.B. B: 0.7, C: 0.3" style="width:100%; padding: 4px; background:#1e293b; color:#fff; border:1px solid #475569; border-radius:4px;">
-                </div>
+        <div class="modal-table">
+
+            <div class="modal-table-header">
+                <div>Name</div>
+                <div>Halbwertszeit</div>
+                <div>∞</div>
+                <div>Startwert</div>
+                <div>Zerfallsprodukte</div>
             </div>
-        `;
-        substancesContainer.insertAdjacentHTML('beforeend', html);
 
-        const infiniteCheckbox = document.getElementById(`infinite-check-${key}`);
-        addInfiniteCheckboxListener(infiniteCheckbox);
+            <div id="modal-table-body"></div>
+
+        </div>
+    `;
+
+    const body = document.getElementById("modal-table-body");
+
+    Object.keys(localSubstances).forEach(key => {
+
+        const sub = localSubstances[key];
+
+        const displayHL =
+            sub["half life"] === Infinity
+                ? "Infinity"
+                : sub["half life"];
+
+        const decayString = Object.entries(
+            sub["decay products"]
+        )
+        .map(([k,v]) => `${k}: ${v}`)
+        .join(", ");
+
+        body.insertAdjacentHTML("beforeend", `
+
+            <div class="modal-table-row">
+
+                <div
+                    class="substance-name"
+                    style="color:${colors[key] || "#fff"}">
+
+                    ${key}
+
+                </div>
+
+                <input
+                    class="input-hl"
+                    data-key="${key}"
+                    type="text"
+                    value="${displayHL}">
+
+                <div class="checkbox-cell">
+
+                    <input
+                        type="checkbox"
+                        id="infinite-check-${key}"
+                        ${sub["half life"] === Infinity ? "checked" : ""}>
+
+                </div>
+
+                <input
+                    class="input-val"
+                    data-key="${key}"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="1"
+                    value="${sub.value}">
+
+                <input
+                    class="input-decay-list"
+                    data-key="${key}"
+                    type="text"
+                    value="${decayString}"
+                    placeholder="B:1 oder B:0.7, C:0.3">
+
+            </div>
+
+        `);
+
+        addInfiniteCheckboxListener(
+            document.getElementById(`infinite-check-${key}`)
+        );
+
     });
+
 }
 
 // Add substance action 

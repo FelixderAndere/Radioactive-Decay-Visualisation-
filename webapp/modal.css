@@ -1,67 +1,169 @@
 .modal {
-    display: none; 
-    position: fixed; 
-    z-index: 1000; 
-    left: 0;
-    top: 0;
-    width: 100%; 
-    height: 100%; 
-    overflow: auto; 
-    background-color: rgba(0, 0, 0, 0.5); 
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    overflow: auto;
+    background: rgba(0,0,0,.55);
     backdrop-filter: blur(4px);
 }
 
 .modal-content {
-    background-color: #1e293b; /* Passend zum dunklen Design (Tailwind slate-800) */
+    background: #1e293b;
     color: #f8fafc;
-    margin: 10% auto; 
-    padding: 20px;
+    margin: 4% auto;
+    padding: 24px;
+    width: min(1100px, 92%);
     border: 1px solid #334155;
-    width: 90%; 
-    max-width: 500px; /* Begrenzung auf Desktop, flexibel auf Mobilgeräten */
-    border-radius: 8px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 10px;
+    box-shadow: 0 15px 40px rgba(0,0,0,.45);
     box-sizing: border-box;
 }
 
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #334155;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid #334155;
+    padding-bottom:16px;
+    margin-bottom:20px;
 }
 
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.25rem;
+.modal-header h2{
+    margin:0;
 }
 
-.close-btn {
-    color: #94a3b8;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    border: none;
-    background: none;
-    line-height: 1;
+.close-btn{
+    background:none;
+    border:none;
+    color:#94a3b8;
+    font-size:30px;
+    cursor:pointer;
+    flex: none !important;
 }
 
-.close-btn:hover,
-.close-btn:focus {
-    color: #f1f5f9;
-    text-decoration: none;
+.close-btn:hover{
+    color:white;
 }
 
-.modal-body {
-    margin-bottom: 15px;
+.modal-body{
+    display:flex;
+    flex-direction:column;
+    gap:24px;
 }
 
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    border-top: 1px solid #334155;
-    padding-top: 10px;
+.modal-footer{
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+    border-top:1px solid #334155;
+    padding-top:20px;
+    margin-top:20px;
+}
+
+/* ---------- TABLE ---------- */
+
+.modal-table{
+    display:flex;
+    flex-direction:column;
+}
+
+.modal-table-header,
+.modal-table-row{
+    display:grid;
+    grid-template-columns:
+        70px
+        160px
+        45px
+        120px
+        1fr;
+    gap:14px;
+    align-items:center;
+}
+
+.modal-table-header{
+    padding-bottom:12px;
+    margin-bottom:6px;
+    border-bottom:2px solid #334155;
+
+    font-size:.8rem;
+    color:#94a3b8;
+    font-weight:600;
+    text-transform:uppercase;
+}
+
+.modal-table-row{
+    padding:10px 0;
+    border-bottom:1px solid #334155;
+}
+
+.modal-table-row:last-child{
+    border-bottom:none;
+}
+
+.substance-name{
+    font-size:1rem;
+    font-weight:700;
+}
+
+.modal-table input[type=text],
+.modal-table input[type=number]{
+    width:100%;
+    box-sizing:border-box;
+
+    padding:8px 10px;
+
+    background:#0f172a;
+    color:white;
+
+    border:1px solid #475569;
+    border-radius:6px;
+}
+
+.checkbox-cell{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.checkbox-cell input{
+    width:18px;
+    height:18px;
+}
+
+/* ---------- ADD SUBSTANCE ---------- */
+
+.add-substance-grid{
+    display:grid;
+    grid-template-columns:
+        120px
+        180px
+        160px
+        45px;
+    gap:12px;
+    align-items:end;
+}
+
+.add-substance-grid label{
+    display:block;
+    margin-bottom:5px;
+    font-size:.8rem;
+    color:#94a3b8;
+}
+
+.add-substance-grid input{
+    width:100%;
+    box-sizing:border-box;
+
+    padding:8px 10px;
+
+    background:#0f172a;
+    color:white;
+
+    border:1px solid #475569;
+    border-radius:6px;
+}
+
+.add-substance-grid button{
+    height:39px;
 }
