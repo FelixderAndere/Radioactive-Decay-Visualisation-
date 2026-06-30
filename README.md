@@ -1,7 +1,11 @@
-
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 ![GitHub Repo stars](https://img.shields.io/github/stars/FelixderAndere/Radioactive-Decay-Visualisation)
+![GitHub issues](https://img.shields.io/github/issues/FelixderAndere/Radioactive-Decay-Visualisation)
+![GitHub Pages](https://img.shields.io/badge/demo-online-brightgreen.svg)
+![GitHub release](https://img.shields.io/github/v/release/FelixderAndere/Radioactive-Decay-Visualisation)
+[![Live Demo](https://img.shields.io/badge/live-demo-blue?logo=github)](https://felixderandere.github.io/Radioactive-Decay-Visualisation/)
 
+# Radioactive-Decay-Visualization
 
 # Radioactive-Decay-Visualization
 
