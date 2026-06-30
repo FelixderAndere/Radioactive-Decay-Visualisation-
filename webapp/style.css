@@ -157,6 +157,10 @@ canvas {
 
 .canvas-container {
     position: relative;
+    background-color: #141e30;
+    padding: 10px;
+    padding-bottom: 0;
+    border-radius: 6px;
 }
 
 .canvas-label {
@@ -174,16 +178,11 @@ canvas {
 }
 
 .canvas-toolbar {
-    position: absolute;
-    top: 10px;
-    left: 12px;
-    right: 12px;
     z-index: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 10px;
 }
 
 .segmented-control {
