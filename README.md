@@ -80,4 +80,4 @@ the random result approaches the Theory curve statistically.
 
 ## Discussion
 
-![Screenshot of the Excel Analisys](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/analisys.png)
+![Screenshot of the Excel Analisys](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Analysis.png)
