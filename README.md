@@ -6,20 +6,22 @@
 [![Live Demo](https://img.shields.io/badge/live-demo-blue?logo=github)](https://felixderandere.github.io/Radioactive-Decay-Visualisation/)
 
 # Radioactive-Decay-Visualisation
-
 A simple simulation and visualisation of radioactive decay.
 
 ## Demo
-
+### See the Website here:
 https://felixderandere.github.io/Radioactive-Decay-Visualisation/
+
+### Screenshot
+![App Screenshot](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Demo Default Simulation.png)
+![App Screenshot](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Demo Default Theory.png)
+
+
 
 ## Content
 - Python cli
 - Webapp
 
-## Screenshot
-
-![App Screenshot](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/image.png)
 
 ## Features
 
