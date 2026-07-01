@@ -99,6 +99,8 @@ window.updateSimulationDataset = function(newDataset, settings = {}) {
     currentSubstancesData = cloneSubstances(newDataset);
     ensureDatasetColors(currentSubstancesData);
     updateStableSubstances();
+    updateSubstanceCount();
+    updateAtomsStat();
 
     if (settings.presetId) {
         currentPresetId = settings.presetId;
@@ -129,6 +131,7 @@ document.getElementById('count-slider').addEventListener('input', function () {
     particleCount = parseInt(this.value);
 
     document.getElementById('particleCount-label').innerText = particleCount;
+    updateAtomsStat();
 
     simulator = new DecaySimulator(currentSubstancesData, {
         particleCount,
@@ -175,6 +178,7 @@ const fitSumLabel = document.getElementById('fit-sum');
 const massErrorLabel = document.getElementById('mass-error');
 const decayedStepLabel = document.getElementById('decayed-step');
 const stableFractionLabel = document.getElementById('stable-fraction');
+const substanceCountLabel = document.getElementById('substance-count');
 const liveDeviationLabel = document.getElementById('live-deviation');
 const perfFpsLabel = document.getElementById('perf-fps');
 const perfStepMsLabel = document.getElementById('perf-step-ms');
@@ -192,6 +196,16 @@ function updateStableSubstances() {
     stableSubstances = Object.entries(currentSubstancesData)
         .filter(([, data]) => data["half life"] === "∞" || data["half life"] === Infinity)
         .map(([name]) => name);
+}
+
+function updateSubstanceCount() {
+    if (!substanceCountLabel) return;
+    substanceCountLabel.innerText = `${Object.keys(currentSubstancesData).length}`;
+}
+
+function updateAtomsStat() {
+    if (!fitAtomsLabel) return;
+    fitAtomsLabel.innerText = `${particleCount}`;
 }
 
 function computeLiveDeviation(currentValues) {
@@ -275,6 +289,8 @@ function resetSimulationStats() {
     resetFitStats();
 
     // Live metrics keep showing current state, while per-step counters reset.
+    fitSamplesLabel.innerText = `0`;
+    updateAtomsStat();
     decayedStepLabel.innerText = '--';
     perfStepMsLabel.innerText = '--';
     perfFpsLabel.innerText = '--';
@@ -296,7 +312,7 @@ function updateSimulationStats(fit) {
     fitErrorLabel.innerText = fit.toFixed(4);
     fitScoreLabel.innerText = `${fitScore.toFixed(2)}%`;
     fitSamplesLabel.innerText = `${randomHistory.length - 1}`;
-    fitAtomsLabel.innerText = `${particleCount}`;
+    updateAtomsStat();
 }
 
 function updateStatsUI(currentValues, liveMetrics = {}) {
@@ -308,6 +324,10 @@ function updateStatsUI(currentValues, liveMetrics = {}) {
 
     const stableFraction = stableSubstances.reduce((acc, key) => acc + (currentValues[key] || 0), 0);
     stableFractionLabel.innerText = `${(stableFraction * 100).toFixed(3)}%`;
+
+    updateSubstanceCount();
+    fitSamplesLabel.innerText = `${randomHistory.length - 1}`;
+    updateAtomsStat();
 
     const deviation = liveMetrics.deviation ?? computeLiveDeviation(currentValues);
     liveDeviationLabel.innerText = `${(deviation * 100).toFixed(3)}%`;
@@ -533,6 +553,8 @@ btnReset.addEventListener('click', () => {
     latestValues = currentValues;
     resetRandomHistory(currentValues);
     resetSimulationStats();
+    fitSamplesLabel.innerText = `0`;
+    updateAtomsStat();
     updateStatsUI(currentValues);
     drawParticles(currentValues);
     drawChart();
@@ -545,6 +567,8 @@ window.addEventListener('resize', resizeCanvases);
 
 ensureDatasetColors(currentSubstancesData);
 updateStableSubstances();
+updateSubstanceCount();
+updateAtomsStat();
 initPresetUI();
 initStatsUI();
 resetSimulationStats();

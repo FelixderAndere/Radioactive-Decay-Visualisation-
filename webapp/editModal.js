@@ -106,6 +106,48 @@ const addInfiniteCheckboxListener = (checkbox) => {
     });
 };
 
+function normalizeDecayProducts(decayProducts) {
+    const entries = Object.entries(decayProducts).filter(([, ratio]) => !isNaN(ratio) && ratio > 0);
+    const total = entries.reduce((acc, [, ratio]) => acc + ratio, 0);
+
+    if (total <= 0) {
+        return {};
+    }
+
+    const normalized = {};
+    entries.forEach(([name, ratio]) => {
+        normalized[name] = ratio / total;
+    });
+
+    return normalized;
+}
+
+function deleteSubstance(name) {
+    if (!localSubstances[name]) return;
+
+    const referencedBy = Object.entries(localSubstances)
+        .filter(([key, substance]) => key !== name && substance["decay products"] && substance["decay products"][name] != null)
+        .map(([key]) => key);
+
+    const message = referencedBy.length > 0
+        ? `${name} is referenced by ${referencedBy.join(", ")}. Delete it and remove those references?`
+        : `Delete ${name}?`;
+
+    if (!confirm(message)) return;
+
+    delete localSubstances[name];
+
+    Object.values(localSubstances).forEach(substance => {
+        if (!substance["decay products"] || substance["decay products"][name] == null) return;
+
+        delete substance["decay products"][name];
+        substance["decay products"] = normalizeDecayProducts(substance["decay products"]);
+    });
+
+    renderModalSubstances();
+    renderAddRow();
+}
+
 function renderModalSubstances() {
 
     substancesContainer.innerHTML = `
@@ -121,6 +163,7 @@ function renderModalSubstances() {
                 <div>∞</div>
                 <div>Start value</div>
                 <div>Decay product</div>
+                <div>Delete</div>
             </div>
 
             <div id="modal-table-body"></div>
@@ -188,6 +231,13 @@ function renderModalSubstances() {
                     value="${decayString}"
                     placeholder="B:1 oder B:0.7, C:0.3">
 
+                <button
+                    type="button"
+                    class="danger delete-substance-btn"
+                    data-key="${key}">
+                    Delete
+                </button>
+
             </div>
 
         `);
@@ -204,6 +254,11 @@ function renderModalSubstances() {
 document.addEventListener("click", (e) => {
     if (e.target.id === "btn-add-substance") {
         addSubstance();
+        return;
+    }
+
+    if (e.target.classList.contains("delete-substance-btn")) {
+        deleteSubstance(e.target.getAttribute("data-key"));
     }
 });
 
