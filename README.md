@@ -16,9 +16,8 @@ https://felixderandere.github.io/Radioactive-Decay-Visualisation/
 
 
 ### Screenshot
-![App Screenshot](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Demo_Default_Simulation.png)
+![App Screenshot](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Demo.png)
 
-![App Screenshot](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Demo_Default_Theory.png)
 
 
 ## Content
