@@ -17,8 +17,7 @@ https://felixderandere.github.io/Radioactive-Decay-Visualisation/
 
 ### Screenshot
 ![App Screenshot](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Demo.png)
-
-
+*fig. 1: Two Screenshots of the Website. On the left "Theory" view, on the right "Random" view with simulated values.*
 
 ## Content
 - Python cli
@@ -93,9 +92,11 @@ smaller populations or larger time steps. As the particle count increases, the
 Random mode approaches the deterministic expectation statistically.
 
 ## Discussion
-The following Screenshots show an Analysis with the /test/test.js script.
+The following Screenshots (fig. 2 and fig. 3) show an Analysis with the /test/test.js script.
 Different Step sizes in the Simulation of the Preset "Demo" with 30 years are compared.
 Note that the average values of the random simulations are going against the real value with increasingly smaller steps.
 
 ![Screenshot of the Excel Analisys](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Demo_30j.png)
+*fig. 2: Screenshots of the Website. Same Parameters as in the Test.*
 ![Screenshot of the Excel Analisys](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Analysis.png)
+*fig. 3: Screenshot of an Excel analysis with diagrams for every substance in "Demo" and Box plots for different step sizes.*
