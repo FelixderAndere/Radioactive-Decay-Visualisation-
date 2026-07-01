@@ -64,6 +64,21 @@ class DecaySimulator {
         return next;
     }
 
+    computeCurve(maxTime, steps, stochastic = false) {
+        let v = [...this.initialValues];
+        const dt = maxTime / steps;
+        const out = [];
+
+        for (let i = 0; i <= steps; i++) {
+
+            out.push([...v]);
+
+            v = this.simulateStep(v, dt, stochastic);
+        }
+
+        return out;
+    }
+
     _stochastic(amount, p) {
 
         const n = Math.round(amount * this.particleCount);

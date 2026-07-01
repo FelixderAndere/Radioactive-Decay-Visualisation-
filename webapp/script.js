@@ -294,7 +294,7 @@ function drawChart() {
     const steps = 100;
     const visibleTime = Math.min(currentTime, maxTime);
 
-    const cache = new Map();
+    const curve = simulator.computeCurve(maxTime, steps, false);
 
     const traces = keys.map(key => {
 
@@ -315,31 +315,11 @@ function drawChart() {
             };
         }
 
-        const x = [];
-        const y = [];
-
-        let v = simulator.getValuesAtTime(0);
-
-        for (let i = 0; i <= steps; i++) {
-
-            const t = (i / steps) * maxTime;
-
-            if (t > visibleTime) break;
-
-            // caching vermeiden doppelte Berechnung
-            if (!cache.has(t)) {
-                cache.set(t, simulator.getValuesAtTime(t));
-            }
-
-            const vals = cache.get(t);
-
-            x.push(t);
-            y.push(vals[key]);
-        }
+        const idx = simulator.idx[key];
 
         return {
-            x,
-            y,
+            x: curve.map((_, i) => (i / steps) * maxTime),
+            y: curve.map(v => v[idx]),
             type: 'scatter',
             mode: 'lines',
             name: `Substance ${key}`,
