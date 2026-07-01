@@ -151,7 +151,7 @@ function renderModalSubstances() {
 
                 <div
                     class="substance-name"
-                    style="color:${colors[key] || "#fff"}">
+                    style="color:${getSubstanceColor(key)}">
 
                     ${key}
 
@@ -251,12 +251,15 @@ function parseHalfLife(v) {
 }
 
 function ensureColor(name) {
-    if (!colors[name]) {
-        colors[name] =
-            "#" + Math.floor(Math.random() * 16777215)
-                .toString(16)
-                .padStart(6, "0");
+    getSubstanceColor(name);
+}
+
+function getSubstanceColor(name) {
+    if (typeof window.getColorForSubstance === "function") {
+        return window.getColorForSubstance(name);
     }
+
+    return colors[name] || "#fff";
 }
 
 

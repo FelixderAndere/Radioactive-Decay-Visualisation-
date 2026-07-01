@@ -115,6 +115,28 @@ button.primary:hover {
     border-color: #2563eb;
 }
 
+select {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #141e30;
+    color: var(--text-color);
+    border: 1px solid #334155;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.preset-description {
+    margin-top: 6px;
+    line-height: 1.35;
+}
+
 /* Stats List */
 .stat-item {
     margin-bottom: 16px;
