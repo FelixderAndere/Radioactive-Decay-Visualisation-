@@ -55,7 +55,7 @@ function applyPresetSettings(preset) {
         speedSlider.value = preset.timeStep;
         speedSlider.min = preset.timeStepSlider_min;
         speedSlider.max = preset.timeStepSlider_max;
-        yearsMaxSpan.innerText = preset.timeStep;
+        years_step.innerText = preset.timeStep;
     }
 }
 
