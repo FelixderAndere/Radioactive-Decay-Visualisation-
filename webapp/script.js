@@ -378,7 +378,6 @@ function loop() {
                 drawChart();
             }
         }
-
         if (currentTime >= maxTime) {
 
             currentTime = maxTime;
@@ -386,6 +385,11 @@ function loop() {
 
             btnPlay.innerText = "Start";
             btnPlay.classList.add("primary");
+
+            // calculate score
+            const fit = simulator.computeGlobalFit(randomHistory, maxTime, 200);
+            scoreLabel = document.getElementById('score');
+            scoreLabel.innerText = `Fit Error: ${fit.toFixed(4)} | Fit Score: ${(100 * (1 - fit)).toFixed(2)}%`;
         }
     }
 
@@ -406,13 +410,6 @@ function resizeCanvases() {
 }
 
 btnPlay.addEventListener('click', () => {
-    if(currentTime >= maxTime) {
-        currentTime = 0;
-        simulationAccumulator = 0;
-        simulator.reset();
-        latestValues = simulator.getValuesAtTime(0);
-        resetRandomHistory(latestValues);
-    }
     isPlaying = !isPlaying;
     btnPlay.innerText = isPlaying ? "Pause" : "Start";
     btnPlay.classList.toggle('primary', !isPlaying);

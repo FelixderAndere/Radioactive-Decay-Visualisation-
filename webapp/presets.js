@@ -1,7 +1,7 @@
 // Real isotope data adapted from reinpk/radioactive (MIT).
 // Copyright (C) 2013 Peter Reinhardt.
 // Its isotope dataset was compiled from decay-chain and atomic-mass references in 2013.
-export const SUBSTANCE_PRESETS = {
+const SUBSTANCE_PRESETS = {
     demo: {
         label: "Current demo",
         description: "The original A to E demonstration preset.",

@@ -78,13 +78,13 @@
             </div>            
         </div>
 
-        <div class="visualization-area">
+        <div class="visualization-area" style="display: flex; flex-direction: column; gap: 20px;" text-align: center;>
             <div class="canvas-container">
                 <div class="canvas-label">Atomic lattice (phase transition)</div>
                 <canvas id="particle-canvas" height="300"></canvas>
             </div>
             
-            <div class="canvas-container">
+            <div class="canvas-container" >
                 <div class="canvas-toolbar">
                     <div class="canvas-label">Chart</div>
                     <div class="segmented-control" aria-label="Graph-Daten">
@@ -94,6 +94,7 @@
                 </div>
                 <div id="chart-plot" class="plotly-chart"></div>
             </div>
+            <span style="text-align: center; display: block;" id="score"></span>
         </div>
     </div>
 
