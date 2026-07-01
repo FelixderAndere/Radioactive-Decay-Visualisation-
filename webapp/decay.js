@@ -55,6 +55,9 @@ class DecaySimulator {
                 ? this._stochastic(amount, p)
                 : amount * p;
 
+            // Stochastic rounding can overshoot tiny buckets; never decay more than available.
+            decayed = Math.min(decayed, amount);
+
             next[i] -= decayed;
 
             for (const { p: name, v: portion } of products) {
