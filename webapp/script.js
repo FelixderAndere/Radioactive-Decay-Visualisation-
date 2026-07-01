@@ -49,6 +49,7 @@ function applyPresetSettings(preset) {
         maxTimeSlider.min = preset.maxTimeSlider_min;
         maxTimeSlider.max = preset.maxTimeSlider_max;
         yearsMaxSpan.innerText = preset.maxTime;
+        maxTime = preset.maxTime;
     }
 
     if (typeof preset.timeStep === "number") {
@@ -56,6 +57,7 @@ function applyPresetSettings(preset) {
         speedSlider.min = preset.timeStepSlider_min;
         speedSlider.max = preset.timeStepSlider_max;
         years_step.innerText = preset.timeStep;
+        time_step = preset.timeStep;
     }
 }
 
