@@ -287,38 +287,52 @@ function setGraphMode(mode) {
 }
 
 function drawChart() {
-    if (typeof Plotly === 'undefined') {
-        return;
-    }
+
+    if (typeof Plotly === 'undefined') return;
 
     const keys = Object.keys(currentSubstancesData);
     const steps = 100;
     const visibleTime = Math.min(currentTime, maxTime);
 
+    const cache = new Map();
+
     const traces = keys.map(key => {
+
         if (graphMode === 'random') {
-            const visiblePoints = randomHistory.filter(point => point.time <= visibleTime);
+
+            const visiblePoints = randomHistory.filter(
+                p => p.time <= visibleTime
+            );
 
             return {
-                x: visiblePoints.map(point => point.time),
-                y: visiblePoints.map(point => point.values[key] || 0),
+                x: visiblePoints.map(p => p.time),
+                y: visiblePoints.map(p => p.values[key] || 0),
                 type: 'scatter',
                 mode: 'lines+markers',
                 name: `Substance ${key}`,
                 line: { color: getColorForSubstance(key), width: 2 },
-                marker: { color: getColorForSubstance(key), size: 4 },
-                hovertemplate: 'Time: %{x:.2f} years<br>Fraction: %{y:.3f}<extra></extra>'
+                marker: { size: 4 },
             };
         }
 
         const x = [];
         const y = [];
 
-        for(let i = 0; i <= steps; i++) {
+        let v = simulator.getValuesAtTime(0);
+
+        for (let i = 0; i <= steps; i++) {
+
             const t = (i / steps) * maxTime;
+
             if (t > visibleTime) break;
 
-            const vals = simulator.getValuesAtTime(t);
+            // caching vermeiden doppelte Berechnung
+            if (!cache.has(t)) {
+                cache.set(t, simulator.getValuesAtTime(t));
+            }
+
+            const vals = cache.get(t);
+
             x.push(t);
             y.push(vals[key]);
         }
@@ -329,55 +343,26 @@ function drawChart() {
             type: 'scatter',
             mode: 'lines',
             name: `Substance ${key}`,
-            line: { color: getColorForSubstance(key), width: 2 },
-            hovertemplate: 'Time: %{x:.2f} years<br>Fraction: %{y:.3f}<extra></extra>'
+            line: { color: getColorForSubstance(key), width: 2 }
         };
     });
 
     const layout = {
         paper_bgcolor: '#141e30',
         plot_bgcolor: '#141e30',
-        uirevision: `${graphMode}-${maxTime}`,
         margin: { l: 58, r: 20, t: 12, b: 54 },
-        font: { color: '#f8fafc', family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' },
-        legend: { orientation: 'h', x: 0, y: 1.12, bgcolor: 'rgba(20, 30, 48, 0)' },
+        font: { color: '#f8fafc' },
         xaxis: {
-            title: { text: 'Time (years)' },
-            range: [0, maxTime || 1],
-            gridcolor: '#26364f',
-            zerolinecolor: '#334155',
-            linecolor: '#334155',
-            tickcolor: '#334155'
+            title: 'Time (years)',
+            range: [0, maxTime]
         },
         yaxis: {
-            title: { text: 'Fraction of atoms' },
-            range: [0, 1],
-            gridcolor: '#26364f',
-            zerolinecolor: '#334155',
-            linecolor: '#334155',
-            tickcolor: '#334155'
-        },
-        shapes: [{
-            type: 'line',
-            x0: visibleTime,
-            x1: visibleTime,
-            y0: 0,
-            y1: 1,
-            xref: 'x',
-            yref: 'y',
-            line: { color: 'rgba(255,255,255,0.45)', width: 1, dash: 'dash' }
-        }]
+            title: 'Fraction',
+            range: [0, 1]
+        }
     };
 
-    const config = {
-        responsive: true,
-        scrollZoom: true,
-        displayModeBar: true,
-        modeBarButtonsToRemove: ['lasso2d', 'select2d'],
-        displaylogo: false
-    };
-
-    Plotly.react(chartPlot, traces, layout, config);
+    Plotly.react(chartPlot, traces, layout, { responsive: true });
 }
 
 function loop() {
