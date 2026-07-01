@@ -57,7 +57,8 @@ let time_step = parseFloat(speedSlider.value) || 1;
 speedSlider.addEventListener('input', function() {
     time_step = parseFloat(this.value);
     years_step.innerText = time_step.toFixed(2); 
-    
+    // reload simulator with new timestep
+    simulator = new DecaySimulator(currentSubstancesData, options = { particleCount: particleCount, timestep: time_step });    
     drawChart(); 
 }); 
 
