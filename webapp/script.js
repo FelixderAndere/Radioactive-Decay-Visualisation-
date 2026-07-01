@@ -49,14 +49,14 @@ const years_step = document.getElementById('years-step')
 let maxTime = parseFloat(maxTimeSlider.value) || 100;
 maxTimeSlider.addEventListener('input', function() {
     maxTime = parseFloat(this.value);
-    yearsMaxSpan.innerText = maxTime.toFixed(2); 
+    yearsMaxSpan.innerText = maxTime
     
     drawChart(); 
 }); 
 let time_step = parseFloat(speedSlider.value) || 1;
 speedSlider.addEventListener('input', function() {
     time_step = parseFloat(this.value);
-    years_step.innerText = time_step.toFixed(2); 
+    years_step.innerText = time_step
     // reload simulator with new timestep
     simulator = new DecaySimulator(currentSubstancesData, options = { particleCount: particleCount, timestep: time_step });    
     drawChart(); 
