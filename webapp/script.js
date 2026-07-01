@@ -110,6 +110,7 @@ window.updateSimulationDataset = function(newDataset, settings = {}) {
     simulator = new DecaySimulator(currentSubstancesData, options = { particleCount: particleCount, timestep: time_step });
     
     initStatsUI();
+    resetSimulationStats();
     initParticles();
     
     const currentValues = simulator.getValuesAtTime(0);
@@ -138,6 +139,7 @@ document.getElementById('count-slider').addEventListener('input', function () {
 
     initParticles();
     resetRandomHistory(latestValues);
+    resetSimulationStats();
     updateStatsUI(latestValues);
     drawParticles(latestValues);
     drawChart();
@@ -162,6 +164,11 @@ const btnReset = document.getElementById('btn-reset');
 const btnEdit = document.getElementById('btn-edit');
 const yearsVal = document.getElementById('years-val');
 const statsContainer = document.getElementById('stats-container');
+const simulationStatsContainer = document.getElementById('simulation-stats');
+const fitErrorLabel = document.getElementById('fit-error');
+const fitScoreLabel = document.getElementById('fit-score');
+const fitSamplesLabel = document.getElementById('fit-samples');
+const fitAtomsLabel = document.getElementById('fit-atoms');
 const presetSelect = document.getElementById('preset-select');
 const presetDescription = document.getElementById('preset-description');
 
@@ -238,6 +245,25 @@ function initStatsUI() {
         `;
         statsContainer.insertAdjacentHTML('beforeend', html);
     });
+}
+
+function resetSimulationStats() {
+    if (!simulationStatsContainer) return;
+
+    fitErrorLabel.innerText = '--';
+    fitScoreLabel.innerText = '--';
+    fitSamplesLabel.innerText = '--';
+    fitAtomsLabel.innerText = '--';
+}
+
+function updateSimulationStats(fit) {
+    if (!simulationStatsContainer) return;
+
+    const fitScore = 100 * (1 - fit);
+    fitErrorLabel.innerText = fit.toFixed(4);
+    fitScoreLabel.innerText = `${fitScore.toFixed(2)}%`;
+    fitSamplesLabel.innerText = `${randomHistory.length - 1}`;
+    fitAtomsLabel.innerText = `${particleCount}`;
 }
 
 function updateStatsUI(currentValues) {
@@ -371,6 +397,7 @@ function loop() {
             latestValues = simulator.simulate(dt);
 
             addRandomHistoryPoint(currentTime, latestValues);
+            resetSimulationStats();
 
             updateStatsUI(latestValues);
             drawParticles(latestValues);
@@ -388,8 +415,7 @@ function loop() {
 
             // calculate score
             const fit = simulator.computeGlobalFit(randomHistory, maxTime, 200);
-            scoreLabel = document.getElementById('score');
-            scoreLabel.innerText = `Fit Error: ${fit.toFixed(4)} | Fit Score: ${(100 * (1 - fit)).toFixed(2)}%`;
+            updateSimulationStats(fit);
         }
     }
 
@@ -413,6 +439,10 @@ btnPlay.addEventListener('click', () => {
     isPlaying = !isPlaying;
     btnPlay.innerText = isPlaying ? "Pause" : "Start";
     btnPlay.classList.toggle('primary', !isPlaying);
+
+    if (isPlaying && currentTime === 0) {
+        resetSimulationStats();
+    }
 });
 
 btnReset.addEventListener('click', () => {
@@ -425,6 +455,7 @@ btnReset.addEventListener('click', () => {
     const currentValues = simulator.getValuesAtTime(0);
     latestValues = currentValues;
     resetRandomHistory(currentValues);
+    resetSimulationStats();
     updateStatsUI(currentValues);
     drawParticles(currentValues);
     drawChart();
@@ -438,6 +469,7 @@ window.addEventListener('resize', resizeCanvases);
 ensureDatasetColors(currentSubstancesData);
 initPresetUI();
 initStatsUI();
+resetSimulationStats();
 particleCanvas.width = particleCanvas.offsetWidth;
 initParticles();
 

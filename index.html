@@ -12,7 +12,7 @@
 
     <header>
         <h1>Radioactive Decay Visualisation</h1>
-        <p>Visual simulation of radioactive decay chains.</p>
+        <p id="undercaption">Visual simulation of radioactive decay chains.</p>
     </header>
 
     <div class="container">
@@ -94,7 +94,30 @@
                 </div>
                 <div id="chart-plot" class="plotly-chart"></div>
             </div>
-            <h4 style="text-align: center; display: block;" id="score"></h4>
+
+            <div class="canvas-container simulation-stats-panel">
+                <div class="canvas-label">Simulation stats</div>
+                <div class="simulation-stats" id="simulation-stats" aria-live="polite">
+                    <div class="stats-grid">
+                        <div class="stat-pill">
+                            <span class="stat-pill-label">Fit Error</span>
+                            <span class="stat-pill-value" id="fit-error">--</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="stat-pill-label">Fit Score</span>
+                            <span class="stat-pill-value" id="fit-score">--</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="stat-pill-label">Samples</span>
+                            <span class="stat-pill-value" id="fit-samples">--</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="stat-pill-label">Atoms</span>
+                            <span class="stat-pill-value" id="fit-atoms">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
