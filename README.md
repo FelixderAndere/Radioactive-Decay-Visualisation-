@@ -75,3 +75,6 @@ Because this mode uses random events and a limited atom count, its curve can
 fluctuate around the theoretical curve. With more atoms or many repeated runs,
 the random result approaches the Theory curve statistically.
 
+## Discussion
+
+![Screenshot of the Excel Analisys](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/Analisys different steps simulation with demo.png)
