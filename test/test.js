@@ -1,139 +1,70 @@
-"use strict";
+import * as XLSX from "xlsx";
+import { DecaySimulator } from "../webapp/decay.js";
+import { SUBSTANCE_PRESETS } from "../webapp/presets.js";
 
-const ExcelJS = require("exceljs");
-const { DecaySimulator } = require("../webapp/decay.js");
-const { SUBSTANCE_PRESETS } = require("../webapp/presets.js");
+export function benchmarkStepSizes(outputFile = "decay_test.xlsx") {
 
-const PRESET_KEY = "demo";
+    const preset = SUBSTANCE_PRESETS.demo;
 
-const RUNS = 100;
-const PARAM_SCALES = [0.5, 1, 2, 4];
+    const maxTime = 30;
+    const repetitions = 100;
 
-console.log("🚀 Advanced decay analysis starting...");
+    const stepSizes = [
+        5,
+        2,
+        1,
+        0.5,
+        0.25,
+        0.1,
+        0.05,
+        0.01
+    ];
 
-// --------------------------------------------------
-// Preset cloning with modified half-lives
-// --------------------------------------------------
+    const workbook = XLSX.utils.book_new();
 
-function scalePreset(preset, scale) {
+    for (const dt of stepSizes) {
 
-    const substances = JSON.parse(JSON.stringify(preset.substances));
+        const rows = [];
 
-    for (const key in substances) {
+        rows.push([
+            "Run",
+            ...Object.keys(preset.substances)
+        ]);
 
-        const s = substances[key];
+        for (let run = 1; run <= repetitions; run++) {
 
-        if (s["half life"] !== "∞") {
-            s["half life"] *= scale;
-        }
-    }
-
-    return {
-        ...preset,
-        substances
-    };
-}
-
-// --------------------------------------------------
-
-function runSimulation(preset) {
-
-    const sim = new DecaySimulator(preset.substances, {
-        timestep: preset.timeStep
-    });
-
-    const result = sim.computeCurve(
-        preset.maxTime,
-        200,
-        true
-    );
-
-    return result[result.length - 1];
-}
-
-// --------------------------------------------------
-
-async function exportAnalysis(preset) {
-
-    const workbook = new ExcelJS.Workbook();
-
-    const substances = Object.keys(preset.substances);
-
-    const overviewSheet = workbook.addWorksheet("overview");
-    overviewSheet.addRow([
-        "scale",
-        "substance",
-        "mean",
-        "std",
-        "min",
-        "max"
-    ]);
-
-    // --------------------------------------------------
-    // LOOP PARAMETER SCALES
-    // --------------------------------------------------
-
-    for (const scale of PARAM_SCALES) {
-
-        console.log(`\n📊 Processing scale: ${scale}`);
-
-        const scaledPreset = scalePreset(preset, scale);
-
-        const results = [];
-
-        for (let i = 0; i < RUNS; i++) {
-
-            const final = runSimulation(scaledPreset);
-
-            results.push(final);
-
-            if (i % 20 === 0) {
-                console.log(`   ↳ run ${i}/${RUNS}`);
-            }
-        }
-
-        // --------------------------------------------------
-        // Statistik berechnen
-        // --------------------------------------------------
-
-        for (const substance of substances) {
-
-            const values = results.map(r => r[substance]);
-
-            const mean = values.reduce((a, b) => a + b, 0) / values.length;
-
-            const std = Math.sqrt(
-                values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length
+            const simulator = new DecaySimulator(
+                preset.substances,
+                { particleCount: 800 }
             );
 
-            const min = Math.min(...values);
-            const max = Math.max(...values);
+            let t = 0;
 
-            overviewSheet.addRow([
-                scale,
-                substance,
-                mean,
-                std,
-                min,
-                max
+            while (t < maxTime) {
+                simulator.simulate(Math.min(dt, maxTime - t));
+                t += dt;
+            }
+
+            const values = simulator.values;
+
+            rows.push([
+                run,
+                ...values
             ]);
         }
 
-        console.log(`✅ scale ${scale} done`);
+        const sheet = XLSX.utils.aoa_to_sheet(rows);
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            sheet,
+            `dt=${dt}`
+        );
     }
 
-    const filename = `decay_analysis_${PRESET_KEY}.xlsx`;
-    await workbook.xlsx.writeFile(filename);
+    XLSX.writeFile(workbook, outputFile);
 
-    console.log("\n🎉 Analysis complete:", filename);
+    console.log(`Excel geschrieben: ${outputFile}`);
 }
 
-// --------------------------------------------------
-
-(async () => {
-    const preset = SUBSTANCE_PRESETS[PRESET_KEY];
-
-    if (!preset) throw new Error("Preset not found");
-
-    await exportAnalysis(preset);
-})();
+benchmarkStepSizes();
