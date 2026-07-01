@@ -5,9 +5,7 @@
 ![GitHub release](https://img.shields.io/github/v/release/FelixderAndere/Radioactive-Decay-Visualisation)
 [![Live Demo](https://img.shields.io/badge/live-demo-blue?logo=github)](https://felixderandere.github.io/Radioactive-Decay-Visualisation/)
 
-# Radioactive-Decay-Visualization
-
-# Radioactive-Decay-Visualization
+# Radioactive-Decay-Visualisation
 
 A simple simulation and visualisation of radioactive decay.
 
