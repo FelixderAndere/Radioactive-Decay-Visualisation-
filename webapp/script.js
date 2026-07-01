@@ -50,15 +50,20 @@ let maxTime = parseFloat(maxTimeSlider.value) || 100;
 maxTimeSlider.addEventListener('input', function() {
     maxTime = parseFloat(this.value);
     yearsMaxSpan.innerText = maxTime
-    
+}); 
+maxTimeSlider.addEventListener('change', function() {
+    maxTime = parseFloat(this.value);
+    yearsMaxSpan.innerText = maxTime
     drawChart(); 
 }); 
 let time_step = parseFloat(speedSlider.value) || 1;
 speedSlider.addEventListener('input', function() {
     time_step = parseFloat(this.value);
     years_step.innerText = time_step
-    // reload simulator with new timestep
-    simulator = new DecaySimulator(currentSubstancesData, options = { particleCount: particleCount, timestep: time_step });    
+}); 
+speedSlider.addEventListener('change', function() {
+    time_step = parseFloat(this.value);
+    years_step.innerText = time_step
     drawChart(); 
 }); 
 
@@ -298,7 +303,9 @@ function drawChart() {
     const steps = Math.max(1, Math.ceil(maxTime / time_step));
     const visibleTime = Math.min(currentTime, maxTime);
 
-    const curve = simulator.computeCurve(maxTime, steps, false);
+    const curve = graphMode === 'theoretical'
+        ? simulator.computeCurve(maxTime, steps, false)
+        : null;
 
     const traces = keys.map(key => {
 
@@ -367,7 +374,9 @@ function loop() {
 
             updateStatsUI(latestValues);
             drawParticles(latestValues);
-            drawChart();
+            if (graphMode === 'random') {
+                drawChart();
+            }
         }
 
         if (currentTime >= maxTime) {
