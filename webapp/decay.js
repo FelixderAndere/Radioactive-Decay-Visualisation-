@@ -4,7 +4,7 @@
 // Decay Simulator (clean + compact)
 // --------------------------------------------------
 
-class DecaySimulator {
+export class DecaySimulator {
 
     constructor(substances, options = {}) {
 
