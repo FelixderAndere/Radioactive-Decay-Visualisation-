@@ -5,18 +5,20 @@
 ![GitHub release](https://img.shields.io/github/v/release/FelixderAndere/Radioactive-Decay-Visualisation)
 [![Live Demo](https://img.shields.io/badge/live-demo-blue?logo=github)](https://felixderandere.github.io/Radioactive-Decay-Visualisation/)
 
+
 # Radioactive-Decay-Visualisation
 A simple simulation and visualisation of radioactive decay.
+
 
 ## Demo
 ### See the Website here:
 https://felixderandere.github.io/Radioactive-Decay-Visualisation/
 
+
 ### Screenshot
 ![App Screenshot](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Demo_Default_Simulation.png)
 
 ![App Screenshot](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Demo_Default_Theory.png)
-
 
 
 ## Content
@@ -25,15 +27,14 @@ https://felixderandere.github.io/Radioactive-Decay-Visualisation/
 
 
 ## Features
-
 - Simulate the Decay for a given time.
 - Change simulation parameters like Atom amount or Step size.
-- Edit and configure your desired decay chain.
-- Visualization via an Atomic lattice and a Chart
+- Edit and Select your desired decay chain.
+- Visualisation via an Atomic lattice and a Chart
 - Compare the theoretical and simulated chart.
 
-## Physical / Mathematical Explanation
 
+## Physical / Mathematical Explanation
 Radioactive decay is random for each single atom, but predictable for a large
 number of atoms. The probability that one atom decays during a time step `dt`
 depends on the decay constant `lambda`:
@@ -68,7 +69,6 @@ This produces a smooth curve because it represents the average result expected
 from many repeated experiments.
 
 ### Random
-
 The **Random** mode simulates a finite number of atoms step by step. During each
 time step, every atom receives a random test against the physical decay
 probability `p`. If it decays, a decay product is chosen according to the
@@ -80,4 +80,4 @@ the random result approaches the Theory curve statistically.
 
 ## Discussion
 
-![Screenshot of the Excel Analisys](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/analisys.png)
+![Screenshot of the Excel Analisys](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/analisys.png)
