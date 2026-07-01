@@ -35,48 +35,63 @@ https://felixderandere.github.io/Radioactive-Decay-Visualisation/
 
 
 ## Physical / Mathematical Explanation
-Radioactive decay is random for each single atom, but predictable for a large
-number of atoms. The probability that one atom decays during a time step `dt`
-depends on the decay constant `lambda`:
+Radioactive decay is probabilistic on the particle level, but stable in the
+average over many particles. For a nucleus with half-life `T_1/2`, the decay
+constant is
 
 ```text
 lambda = ln(2) / T_1/2
 p = 1 - exp(-lambda * dt)
 ```
 
-`T_1/2` is the half-life of the substance. After one half-life, the expected
-amount of the original substance is reduced to 50%.
+where `p` is the probability that one particle decays during the time step
+`dt`. A shorter half-life means a larger `lambda` and therefore a faster
+decay. After one half-life, the expected amount of the original substance is
+reduced to 50%.
 
 ### Theory
 
-The **Theory** mode shows the mathematical expectation value of the decay
-chain. Instead of rolling a random value for every atom, it solves the decay
-system continuously. For one substance this follows the exponential decay law:
+The **Theory** mode computes the expected value of the system without random
+sampling. Every step uses the decay probability above, but replaces the random
+outcome with its mean value. For one substance this is the exponential decay
+law:
 
 ```text
 N(t) = N_0 * exp(-lambda * t)
 ```
 
-For a decay chain with several substances, the simulator stores all decay rates
-and decay products in a matrix. The distribution after time `t` is calculated
-with the matrix exponential:
+For a decay chain, each substance is updated from its current amount by
+subtracting the expected decayed fraction and distributing that fraction to
+its decay products according to the configured branching ratios. In discrete
+form, for one step of length `dt`:
 
 ```text
-values(t) = exp(A * t) * values(0)
+decayed = N(t) * (1 - exp(-lambda * dt))
+N_next = N(t) - decayed
+product_next = product_current + decayed * branching_ratio
 ```
 
-This produces a smooth curve because it represents the average result expected
-from many repeated experiments.
+The result is a smooth, deterministic curve that represents the mean behavior
+of infinitely many repeated experiments.
 
 ### Random
-The **Random** mode simulates a finite number of atoms step by step. During each
-time step, every atom receives a random test against the physical decay
-probability `p`. If it decays, a decay product is chosen according to the
-configured branching probabilities.
+The **Random** mode uses the same physical decay probability, but applies it to
+an explicit finite particle population. Internally, the simulator converts the
+current amount into a sample size, performs random trials for that sample, and
+then scales the result back to the displayed fraction. In practice this behaves
+like a binomial process:
 
-Because this mode uses random events and a limited atom count, its curve can
-fluctuate around the theoretical curve. With more atoms or many repeated runs,
-the random result approaches the Theory curve statistically.
+```text
+n = round(N * particleCount)
+c ~ Binomial(n, p)
+decayed = c / particleCount
+```
+
+If a substance decays, its decayed fraction is distributed to the configured
+products using the branching ratios. Because the number of particles is finite,
+the curve fluctuates around the Theory curve and can deviate more strongly for
+smaller populations or larger time steps. As the particle count increases, the
+Random mode approaches the deterministic expectation statistically.
 
 ## Discussion
 The following Screenshots show an Analysis with the /test/test.js script.
