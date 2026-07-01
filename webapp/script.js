@@ -98,6 +98,7 @@ window.updateSimulationDataset = function(newDataset, settings = {}) {
 
     currentSubstancesData = cloneSubstances(newDataset);
     ensureDatasetColors(currentSubstancesData);
+    updateStableSubstances();
 
     if (settings.presetId) {
         currentPresetId = settings.presetId;
@@ -155,6 +156,7 @@ let latestValues = null;
 let graphMode = 'theoretical';
 let randomHistory = [];
 let simulationAccumulator = 0;
+let stableSubstances = [];
 
 
 
@@ -169,6 +171,13 @@ const fitErrorLabel = document.getElementById('fit-error');
 const fitScoreLabel = document.getElementById('fit-score');
 const fitSamplesLabel = document.getElementById('fit-samples');
 const fitAtomsLabel = document.getElementById('fit-atoms');
+const fitSumLabel = document.getElementById('fit-sum');
+const massErrorLabel = document.getElementById('mass-error');
+const decayedStepLabel = document.getElementById('decayed-step');
+const stableFractionLabel = document.getElementById('stable-fraction');
+const liveDeviationLabel = document.getElementById('live-deviation');
+const perfFpsLabel = document.getElementById('perf-fps');
+const perfStepMsLabel = document.getElementById('perf-step-ms');
 const presetSelect = document.getElementById('preset-select');
 const presetDescription = document.getElementById('preset-description');
 
@@ -178,6 +187,19 @@ const pCtx = particleCanvas.getContext('2d');
 const chartPlot = document.getElementById('chart-plot');
 const graphTheoreticalBtn = document.getElementById('graph-theoretical');
 const graphRandomBtn = document.getElementById('graph-random');
+
+function updateStableSubstances() {
+    stableSubstances = Object.entries(currentSubstancesData)
+        .filter(([, data]) => data["half life"] === "∞" || data["half life"] === Infinity)
+        .map(([name]) => name);
+}
+
+function computeLiveDeviation(currentValues) {
+    const expectedValues = simulator.getValuesAtTime(currentTime);
+    return Object.keys(currentValues).reduce((acc, key) => {
+        return acc + Math.abs((currentValues[key] || 0) - (expectedValues[key] || 0));
+    }, 0);
+}
 
 function initPresetUI() {
     presetSelect.innerHTML = "";
@@ -250,6 +272,17 @@ function initStatsUI() {
 function resetSimulationStats() {
     if (!simulationStatsContainer) return;
 
+    resetFitStats();
+
+    // Live metrics keep showing current state, while per-step counters reset.
+    decayedStepLabel.innerText = '--';
+    perfStepMsLabel.innerText = '--';
+    perfFpsLabel.innerText = '--';
+}
+
+function resetFitStats() {
+    if (!simulationStatsContainer) return;
+
     fitErrorLabel.innerText = '--';
     fitScoreLabel.innerText = '--';
     fitSamplesLabel.innerText = '--';
@@ -266,7 +299,35 @@ function updateSimulationStats(fit) {
     fitAtomsLabel.innerText = `${particleCount}`;
 }
 
-function updateStatsUI(currentValues) {
+function updateStatsUI(currentValues, liveMetrics = {}) {
+    const sum = Object.values(currentValues).reduce((acc, value) => acc + value, 0);
+    fitSumLabel.innerText = `${(sum * 100).toFixed(3)}%`;
+
+    const massError = Math.abs(sum - 1) * 100;
+    massErrorLabel.innerText = `${massError.toFixed(6)}%`;
+
+    const stableFraction = stableSubstances.reduce((acc, key) => acc + (currentValues[key] || 0), 0);
+    stableFractionLabel.innerText = `${(stableFraction * 100).toFixed(3)}%`;
+
+    const deviation = liveMetrics.deviation ?? computeLiveDeviation(currentValues);
+    liveDeviationLabel.innerText = `${(deviation * 100).toFixed(3)}%`;
+
+    if (liveMetrics.decayedAmount == null) {
+        decayedStepLabel.innerText = '--';
+    } else {
+        decayedStepLabel.innerText = `${(liveMetrics.decayedAmount * 100).toFixed(3)}%`;
+    }
+
+    if (liveMetrics.stepTimeMs == null) {
+        perfStepMsLabel.innerText = '--';
+    } else {
+        perfStepMsLabel.innerText = `${liveMetrics.stepTimeMs.toFixed(2)} ms`;
+    }
+
+    if (liveMetrics.fps != null) {
+        perfFpsLabel.innerText = `${liveMetrics.fps.toFixed(1)}`;
+    }
+
     Object.entries(currentValues).forEach(([key, val]) => {
         const pct = (val * 100).toFixed(1);
         document.getElementById(`pct-${key}`).innerText = `${pct}%`;
@@ -382,7 +443,15 @@ function drawChart() {
     Plotly.react(chartPlot, traces, layout, { responsive: true });
 }
 
-function loop() {
+function loop(timestamp) {
+
+    if (lastTimestamp > 0) {
+        const frameDeltaMs = timestamp - lastTimestamp;
+        if (frameDeltaMs > 0) {
+            perfFpsLabel.innerText = `${(1000 / frameDeltaMs).toFixed(1)}`;
+        }
+    }
+    lastTimestamp = timestamp;
 
     if (isPlaying) {
 
@@ -394,12 +463,20 @@ function loop() {
 
             currentTime += dt;
 
+            const simulationStart = performance.now();
             latestValues = simulator.simulate(dt);
+            const decayedAmount = simulator.lastStepDecayed;
+            const stepTimeMs = performance.now() - simulationStart;
+            const deviation = computeLiveDeviation(latestValues);
 
             addRandomHistoryPoint(currentTime, latestValues);
-            resetSimulationStats();
+            resetFitStats();
 
-            updateStatsUI(latestValues);
+            updateStatsUI(latestValues, {
+                decayedAmount,
+                deviation,
+                stepTimeMs
+            });
             drawParticles(latestValues);
             if (graphMode === 'random') {
                 drawChart();
@@ -467,6 +544,7 @@ graphRandomBtn.addEventListener('click', () => setGraphMode('random'));
 window.addEventListener('resize', resizeCanvases);
 
 ensureDatasetColors(currentSubstancesData);
+updateStableSubstances();
 initPresetUI();
 initStatsUI();
 resetSimulationStats();
