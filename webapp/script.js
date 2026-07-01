@@ -1,11 +1,12 @@
+const PRESET_SOURCE = window.SUBSTANCE_PRESETS || {};
+const DEFAULT_PRESET_ID = PRESET_SOURCE.demo ? "demo" : Object.keys(PRESET_SOURCE)[0];
 
-let currentSubstancesData = {
-    A: { value: 1.0, "half life": 5, "decay products": { B: 0.7, C: 0.3 } },
-    B: { value: 0.0, "half life": 3, "decay products": { C: 1.0 } },
-    C: { value: 0.0, "half life": 8, "decay products": { D: 1.0 } },
-    D: { value: 0.0, "half life": 1, "decay products": { E: 1.0 } },
-    E: { value: 0.0, "half life": "∞", "decay products": {} }
-};
+function cloneSubstances(substances) {
+    return JSON.parse(JSON.stringify(substances));
+}
+
+let currentSubstancesData = cloneSubstances(PRESET_SOURCE[DEFAULT_PRESET_ID].substances);
+let currentPresetId = DEFAULT_PRESET_ID;
 
 const colors = {
     A: '#ef4444',
@@ -15,13 +16,65 @@ const colors = {
     E: '#10b981'
 };
 
-window.updateSimulationDataset = function(newDataset) {
+const generatedColorPalette = [
+    '#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6',
+    '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e',
+    '#84cc16', '#f59e0b', '#0ea5e9', '#a855f7', '#10b981',
+    '#f97316', '#38bdf8', '#fb7185', '#c084fc', '#2dd4bf'
+];
+
+function getColorForSubstance(name) {
+    if (!colors[name]) {
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
+        }
+        colors[name] = generatedColorPalette[Math.abs(hash) % generatedColorPalette.length];
+    }
+
+    return colors[name];
+}
+
+function ensureDatasetColors(dataset) {
+    Object.keys(dataset).forEach(getColorForSubstance);
+}
+
+window.getColorForSubstance = getColorForSubstance;
+
+function applyPresetSettings(preset) {
+    if (!preset) return;
+
+    if (typeof preset.maxTime === "number") {
+        maxTimeSlider.value = preset.maxTime;
+        maxTimeSlider.min = preset.maxTimeSlider_min;
+        maxTimeSlider.max = preset.maxTimeSlider_max;
+        yearsMaxSpan.innerText = preset.maxTime;
+    }
+
+    if (typeof preset.timeStep === "number") {
+        speedSlider.value = preset.timeStep;
+        speedSlider.min = preset.timeStepSlider_min;
+        speedSlider.max = preset.timeStepSlider_max;
+        yearsMaxSpan.innerText = preset.timeStep;
+    }
+}
+
+window.updateSimulationDataset = function(newDataset, settings = {}) {
     isPlaying = false;
     currentTime = 0;
     btnPlay.innerText = "Start";
     btnPlay.classList.add('primary');
 
-    currentSubstancesData = newDataset;
+    currentSubstancesData = cloneSubstances(newDataset);
+    ensureDatasetColors(currentSubstancesData);
+
+    if (settings.presetId) {
+        currentPresetId = settings.presetId;
+    }
+
+    if (settings.applyPresetSettings) {
+        applyPresetSettings(PRESET_SOURCE[currentPresetId]);
+    }
     
     simulator = new DecaySimulator(currentSubstancesData, options = { particleCount: particleCount});
     
@@ -96,6 +149,8 @@ const btnReset = document.getElementById('btn-reset');
 const btnEdit = document.getElementById('btn-edit');
 const yearsVal = document.getElementById('years-val');
 const statsContainer = document.getElementById('stats-container');
+const presetSelect = document.getElementById('preset-select');
+const presetDescription = document.getElementById('preset-description');
 
 // Canvas Setup
 const particleCanvas = document.getElementById('particle-canvas');
@@ -103,6 +158,33 @@ const pCtx = particleCanvas.getContext('2d');
 const chartPlot = document.getElementById('chart-plot');
 const graphTheoreticalBtn = document.getElementById('graph-theoretical');
 const graphRandomBtn = document.getElementById('graph-random');
+
+function initPresetUI() {
+    presetSelect.innerHTML = "";
+
+    Object.entries(PRESET_SOURCE).forEach(([id, preset]) => {
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = preset.label;
+        presetSelect.appendChild(option);
+    });
+
+    presetSelect.value = currentPresetId;
+    presetDescription.innerText = PRESET_SOURCE[currentPresetId]?.description || "";
+}
+
+presetSelect.addEventListener("change", () => {
+    const presetId = presetSelect.value;
+    const preset = PRESET_SOURCE[presetId];
+    if (!preset) return;
+
+    currentPresetId = presetId;
+    presetDescription.innerText = preset.description || "";
+    updateSimulationDataset(preset.substances, {
+        presetId,
+        applyPresetSettings: true
+    });
+});
 
 const particles = [];
 const numParticles = particleCount; 
@@ -127,16 +209,17 @@ function initStatsUI() {
         const hlText = hl === "∞" ? "∞" : `${hl} j`;
         const dp = currentSubstancesData[key]["decay products"];
         // Convert fraction value back to clean legible percentage layout representation
-        const dptext = Object.entries(dp).map(([k, v]) => `${k}: ${(v * 100).toFixed(0)}%`).join(", ");
+        const dptext = Object.entries(dp).map(([k, v]) => `${k}: ${(v * 100).toFixed(2).replace(/\.?0+$/, "")}%`).join(", ");
+        const color = getColorForSubstance(key);
         
         const html = `
             <div class="stat-item" id="stat-${key}">
                 <div class="stat-header">
-                    <span class="color-${key}">Substance ${key} <small style="color:var(--text-muted)">(t½: ${hlText}) (Decay: ${dptext})</small></span>
+                    <span style="color:${color}">Substance ${key} <small style="color:var(--text-muted)">(t½: ${hlText}) (Decay: ${dptext || "stable"})</small></span>
                     <span id="pct-${key}">0.0%</span>
                 </div>
                 <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" id="bar-${key}" style="background-color: ${colors[key]}"></div>
+                    <div class="progress-bar-fill" id="bar-${key}" style="background-color: ${color}"></div>
                 </div>
             </div>
         `;
@@ -176,7 +259,7 @@ function drawParticles(currentValues) {
 
         pCtx.beginPath();
         pCtx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
-        pCtx.fillStyle = colors[type];
+        pCtx.fillStyle = getColorForSubstance(type);
         pCtx.fill();
     });
 }
@@ -187,10 +270,7 @@ function resetRandomHistory(initialValues) {
 
 function addRandomHistoryPoint(time, values) {
     const lastPoint = randomHistory[randomHistory.length - 1];
-    if (lastPoint && Math.abs(lastPoint.time - time) < 0.01) {
-        lastPoint.values = { ...values };
-        return;
-    }
+    
 
     randomHistory.push({ time, values: { ...values } });
 }
@@ -221,8 +301,8 @@ function drawChart() {
                 type: 'scatter',
                 mode: 'lines+markers',
                 name: `Substance ${key}`,
-                line: { color: colors[key], width: 2 },
-                marker: { color: colors[key], size: 4 },
+                line: { color: getColorForSubstance(key), width: 2 },
+                marker: { color: getColorForSubstance(key), size: 4 },
                 hovertemplate: 'Time: %{x:.2f} years<br>Fraction: %{y:.3f}<extra></extra>'
             };
         }
@@ -245,7 +325,7 @@ function drawChart() {
             type: 'scatter',
             mode: 'lines',
             name: `Substance ${key}`,
-            line: { color: colors[key], width: 2 },
+            line: { color: getColorForSubstance(key), width: 2 },
             hovertemplate: 'Time: %{x:.2f} years<br>Fraction: %{y:.3f}<extra></extra>'
         };
     });
@@ -376,6 +456,8 @@ graphRandomBtn.addEventListener('click', () => setGraphMode('random'));
 
 window.addEventListener('resize', resizeCanvases);
 
+ensureDatasetColors(currentSubstancesData);
+initPresetUI();
 initStatsUI();
 particleCanvas.width = particleCanvas.offsetWidth;
 initParticles();
