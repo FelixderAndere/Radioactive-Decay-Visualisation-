@@ -1,21 +1,42 @@
 "use strict";
 
 const ExcelJS = require("exceljs");
-
 const { DecaySimulator } = require("../webapp/decay.js");
 const { SUBSTANCE_PRESETS } = require("../webapp/presets.js");
 
 const PRESET_KEY = "demo";
-const RUNS = 100;
 
-console.log("🚀 Starting decay Excel export...");
-console.log("📦 Preset:", PRESET_KEY);
-console.log("🔁 Runs:", RUNS);
+const RUNS = 100;
+const PARAM_SCALES = [0.5, 1, 2, 4];
+
+console.log("🚀 Advanced decay analysis starting...");
+
+// --------------------------------------------------
+// Preset cloning with modified half-lives
+// --------------------------------------------------
+
+function scalePreset(preset, scale) {
+
+    const substances = JSON.parse(JSON.stringify(preset.substances));
+
+    for (const key in substances) {
+
+        const s = substances[key];
+
+        if (s["half life"] !== "∞") {
+            s["half life"] *= scale;
+        }
+    }
+
+    return {
+        ...preset,
+        substances
+    };
+}
 
 // --------------------------------------------------
 
-function runSimulation(preset, runIndex) {
-    console.log(`⚙️ Running simulation ${runIndex + 1}/${RUNS}`);
+function runSimulation(preset) {
 
     const sim = new DecaySimulator(preset.substances, {
         timestep: preset.timeStep
@@ -27,78 +48,84 @@ function runSimulation(preset, runIndex) {
         true
     );
 
-    const finalState = result[result.length - 1];
-
-    console.log("   ↳ final state:", finalState);
-
-    return finalState;
+    return result[result.length - 1];
 }
 
 // --------------------------------------------------
 
-async function exportToExcel(preset) {
+async function exportAnalysis(preset) {
+
     const workbook = new ExcelJS.Workbook();
 
-    const substanceNames = Object.keys(preset.substances);
+    const substances = Object.keys(preset.substances);
 
-    console.log("📊 Substances:", substanceNames.join(", "));
+    const overviewSheet = workbook.addWorksheet("overview");
+    overviewSheet.addRow([
+        "scale",
+        "substance",
+        "mean",
+        "std",
+        "min",
+        "max"
+    ]);
 
-    // ----------------------------
-    // Sheets erstellen
-    // ----------------------------
-    const sheets = {};
+    // --------------------------------------------------
+    // LOOP PARAMETER SCALES
+    // --------------------------------------------------
 
-    for (const name of substanceNames) {
-        const sheet = workbook.addWorksheet(name);
+    for (const scale of PARAM_SCALES) {
 
-        sheet.columns = [
-            { header: "Run", key: "run", width: 10 },
-            ...substanceNames.map(s => ({
-                header: s,
-                key: s,
-                width: 18
-            }))
-        ];
+        console.log(`\n📊 Processing scale: ${scale}`);
 
-        sheets[name] = sheet;
+        const scaledPreset = scalePreset(preset, scale);
+
+        const results = [];
+
+        for (let i = 0; i < RUNS; i++) {
+
+            const final = runSimulation(scaledPreset);
+
+            results.push(final);
+
+            if (i % 20 === 0) {
+                console.log(`   ↳ run ${i}/${RUNS}`);
+            }
+        }
+
+        // --------------------------------------------------
+        // Statistik berechnen
+        // --------------------------------------------------
+
+        for (const substance of substances) {
+
+            const values = results.map(r => r[substance]);
+
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+
+            const std = Math.sqrt(
+                values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length
+            );
+
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+
+            overviewSheet.addRow([
+                scale,
+                substance,
+                mean,
+                std,
+                min,
+                max
+            ]);
+        }
+
+        console.log(`✅ scale ${scale} done`);
     }
 
-    // optional: Summary Sheet
-    const summary = workbook.addWorksheet("summary");
-    summary.addRow(["Run", ...substanceNames]);
-
-    // ----------------------------
-    // Simulation Runs
-    // ----------------------------
-    for (let run = 0; run < RUNS; run++) {
-
-        const finalState = runSimulation(preset, run);
-
-        // safety log
-        if (run === 0) {
-            console.log("🔬 Example output:", finalState);
-        }
-
-        const row = {
-            run: run + 1,
-            ...finalState
-        };
-
-        for (const name of substanceNames) {
-            sheets[name].addRow(row);
-        }
-
-        summary.addRow([run + 1, ...substanceNames.map(s => finalState[s])]);
-
-        if (run % 10 === 0) {
-            console.log(`📈 Progress: ${run}/${RUNS}`);
-        }
-    }
-
-    const filename = `decay_${PRESET_KEY}.xlsx`;
+    const filename = `decay_analysis_${PRESET_KEY}.xlsx`;
     await workbook.xlsx.writeFile(filename);
 
-    console.log("✅ Export complete:", filename);
+    console.log("\n🎉 Analysis complete:", filename);
 }
 
 // --------------------------------------------------
@@ -106,9 +133,7 @@ async function exportToExcel(preset) {
 (async () => {
     const preset = SUBSTANCE_PRESETS[PRESET_KEY];
 
-    if (!preset) {
-        throw new Error("Preset not found: " + PRESET_KEY);
-    }
+    if (!preset) throw new Error("Preset not found");
 
-    await exportToExcel(preset);
+    await exportAnalysis(preset);
 })();
