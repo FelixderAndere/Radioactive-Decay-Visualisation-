@@ -4,7 +4,7 @@
 // Decay Simulator (clean + compact)
 // --------------------------------------------------
 
-export class DecaySimulator {
+class DecaySimulator {
 
     constructor(substances, options = {}) {
 
@@ -140,9 +140,35 @@ export class DecaySimulator {
         }
         return out;
     }
-}
+
+    computeGlobalFit(randomHistory, maxTime, steps) {
+        let error = 0;
+
+        for (let i = 0; i <= steps; i++) {
+            const t = (i / steps) * maxTime;
+
+            const theory = this.getValuesAtTime(t);
+
+            const random = this.findLast(randomHistory, p => p.time <= t)?.values;
+            if (!random) continue;
+
+            for (const k in theory) {
+                error += Math.abs(theory[k] - (random[k] || 0));
+            }
+        }
+
+        return error / steps;
+    }
+
+    findLast(arr, predicate) {
+        for (let i = arr.length - 1; i >= 0; i--) {
+            if (predicate(arr[i])) return arr[i];
+        }
+        return null;
+    }
 
 // --------------------------------------------------
+}
 
 if (typeof window !== "undefined") {
     window.DecaySimulator = DecaySimulator;
