@@ -10,6 +10,7 @@ class DecaySimulator {
 
         this.particleCount = options.particleCount ?? 800;
         this.random = options.random ?? Math.random;
+        this.timestep = options.timestep ?? 0.05
 
         const names = Object.keys(substances);
         this.names = names;
@@ -36,7 +37,7 @@ class DecaySimulator {
     // Core physics
     // --------------------------------------------------
 
-    simulateStep(values, dt, stochastic = false) {
+    simulateStep(values, timestep, stochastic = false) {
 
         const next = [...values];
 
@@ -48,7 +49,7 @@ class DecaySimulator {
             const amount = values[i];
             if (!amount) continue;
 
-            const p = 1 - Math.exp(-lambda * dt);
+            const p = 1 - Math.exp(-lambda * timestep);
 
             let decayed = stochastic
                 ? this._stochastic(amount, p)
@@ -65,15 +66,18 @@ class DecaySimulator {
     }
 
     computeCurve(maxTime, steps, stochastic = false) {
+
         let v = [...this.initialValues];
-        const dt = maxTime / steps;
+
+        const timestep = this.timestep
+
         const out = [];
 
         for (let i = 0; i <= steps; i++) {
 
-            out.push([...v]);
+            out[i] = [...v];
 
-            v = this.simulateStep(v, dt, stochastic);
+            v = this.simulateStep(v, timestep, stochastic);
         }
 
         return out;
@@ -95,23 +99,24 @@ class DecaySimulator {
     // API
     // --------------------------------------------------
 
-    simulate(dt) {
-        this.values = this.simulateStep(this.values, dt, true);
+    simulate(timestep) {
+        this.values = this.simulateStep(this.values, timestep, true);
         return this._toObject(this.values);
     }
 
-    simulateExpected(dt) {
-        this.values = this.simulateStep(this.values, dt, false);
+    simulateExpected(timestep) {
+        this.values = this.simulateStep(this.values, timestep, false);
         return this._toObject(this.values);
     }
 
     getValuesAtTime(time) {
 
         let v = [...this.initialValues];
-        const dt = 0.05;
 
-        for (let t = 0; t < time; t += dt) {
-            v = this.simulateStep(v, Math.min(dt, time - t), false);
+        const timestep = this.timestep;
+
+        for (let t = 0; t < time; t += timestep) {
+            v = this.simulateStep(v, Math.min(timestep, time - t), false);
         }
 
         return this._toObject(v);

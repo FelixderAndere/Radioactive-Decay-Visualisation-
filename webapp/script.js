@@ -41,6 +41,27 @@ function ensureDatasetColors(dataset) {
 
 window.getColorForSubstance = getColorForSubstance;
 
+const maxTimeSlider = document.getElementById('max-time-input'); 
+const yearsMaxSpan = document.getElementById('years-max');
+const speedSlider = document.getElementById('speed-slider');
+const years_step = document.getElementById('years-step')
+
+let maxTime = parseFloat(maxTimeSlider.value) || 100;
+maxTimeSlider.addEventListener('input', function() {
+    maxTime = parseFloat(this.value);
+    yearsMaxSpan.innerText = maxTime.toFixed(2); 
+    
+    drawChart(); 
+}); 
+let time_step = parseFloat(speedSlider.value) || 1;
+speedSlider.addEventListener('input', function() {
+    time_step = parseFloat(this.value);
+    years_step.innerText = time_step.toFixed(2); 
+    
+    drawChart(); 
+}); 
+
+
 function applyPresetSettings(preset) {
     if (!preset) return;
 
@@ -80,7 +101,7 @@ window.updateSimulationDataset = function(newDataset, settings = {}) {
         applyPresetSettings(PRESET_SOURCE[currentPresetId]);
     }
     
-    simulator = new DecaySimulator(currentSubstancesData, options = { particleCount: particleCount});
+    simulator = new DecaySimulator(currentSubstancesData, options = { particleCount: particleCount, timestep: time_step });
     
     initStatsUI();
     initParticles();
@@ -116,7 +137,7 @@ document.getElementById('count-slider').addEventListener('input', function () {
 });
 
 
-let simulator = new DecaySimulator(currentSubstancesData, options = { particleCount: particleCount});
+let simulator = new DecaySimulator(currentSubstancesData, options = { particleCount: particleCount, timestep: time_step });
 let currentTime = 0;
 let isPlaying = false;
 let animationFrameId = null;
@@ -126,25 +147,6 @@ let graphMode = 'theoretical';
 let randomHistory = [];
 let simulationAccumulator = 0;
 
-const maxTimeSlider = document.getElementById('max-time-input'); 
-const yearsMaxSpan = document.getElementById('years-max');
-const speedSlider = document.getElementById('speed-slider');
-const years_step = document.getElementById('years-step')
-
-let maxTime = parseFloat(maxTimeSlider.value) || 100;
-maxTimeSlider.addEventListener('input', function() {
-    maxTime = parseFloat(this.value);
-    yearsMaxSpan.innerText = maxTime.toFixed(2); 
-    
-    drawChart(); 
-}); 
-let time_step = parseFloat(speedSlider.value) || 1;
-speedSlider.addEventListener('input', function() {
-    time_step = parseFloat(this.value);
-    years_step.innerText = time_step.toFixed(2); 
-    
-    drawChart(); 
-}); 
 
 
 // UI elements
