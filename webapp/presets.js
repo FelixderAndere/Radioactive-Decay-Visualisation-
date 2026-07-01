@@ -120,7 +120,7 @@ const SUBSTANCE_PRESETS = {
         maxTimeSlider_min: 0.01,
         maxTimeSlider_step: 0.01,   
         timeStep: 0.000001,
-        timeStepSlider_max: 0.000005,
+        timeStepSlider_max: 0.00005,
         timeStepSlider_min: 0.0000001,
         timeStepSlider_step: 0.0000001,
         substances: {

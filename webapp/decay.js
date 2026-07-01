@@ -69,7 +69,7 @@ class DecaySimulator {
 
         let v = [...this.initialValues];
 
-        const timestep = this.timestep
+        const timestep = maxTime / steps;
 
         const out = [];
 
@@ -77,7 +77,9 @@ class DecaySimulator {
 
             out[i] = [...v];
 
-            v = this.simulateStep(v, timestep, stochastic);
+            if (i < steps) {
+                v = this.simulateStep(v, timestep, stochastic);
+            }
         }
 
         return out;

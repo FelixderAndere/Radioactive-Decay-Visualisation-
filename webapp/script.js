@@ -124,7 +124,8 @@ document.getElementById('count-slider').addEventListener('input', function () {
     document.getElementById('particleCount-label').innerText = particleCount;
 
     simulator = new DecaySimulator(currentSubstancesData, {
-        particleCount
+        particleCount,
+        timestep: time_step
     });
 
     currentTime = 0;
@@ -294,7 +295,7 @@ function drawChart() {
     if (typeof Plotly === 'undefined') return;
 
     const keys = Object.keys(currentSubstancesData);
-    const steps = 100;
+    const steps = Math.max(1, Math.ceil(maxTime / time_step));
     const visibleTime = Math.min(currentTime, maxTime);
 
     const curve = simulator.computeCurve(maxTime, steps, false);
