@@ -79,5 +79,9 @@ fluctuate around the theoretical curve. With more atoms or many repeated runs,
 the random result approaches the Theory curve statistically.
 
 ## Discussion
+The following Screenshots show an Analysis with the /test/test.js script.
+Different Step sizes in the Simulation of the Preset "Demo" with 30 years are compared.
+Note that the average values of the random simulations are going against the real value with increasingly smaller steps.
 
+![Screenshot of the Excel Analisys](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Demo_30j.png)
 ![Screenshot of the Excel Analisys](https://github.com/FelixderAndere/Radioactive-Decay-Visualisation/blob/main/test/images/Analysis.png)
