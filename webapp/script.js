@@ -174,14 +174,12 @@ const fitErrorLabel = document.getElementById('fit-error');
 const fitScoreLabel = document.getElementById('fit-score');
 const fitSamplesLabel = document.getElementById('fit-samples');
 const fitAtomsLabel = document.getElementById('fit-atoms');
-const fitSumLabel = document.getElementById('fit-sum');
 const massErrorLabel = document.getElementById('mass-error');
 const decayedStepLabel = document.getElementById('decayed-step');
 const stableFractionLabel = document.getElementById('stable-fraction');
 const substanceCountLabel = document.getElementById('substance-count');
 const liveDeviationLabel = document.getElementById('live-deviation');
 const perfFpsLabel = document.getElementById('perf-fps');
-const perfStepMsLabel = document.getElementById('perf-step-ms');
 const presetSelect = document.getElementById('preset-select');
 const presetDescription = document.getElementById('preset-description');
 
@@ -292,7 +290,6 @@ function resetSimulationStats() {
     fitSamplesLabel.innerText = `0`;
     updateAtomsStat();
     decayedStepLabel.innerText = '--';
-    perfStepMsLabel.innerText = '--';
     perfFpsLabel.innerText = '--';
 }
 
@@ -317,7 +314,6 @@ function updateSimulationStats(fit) {
 
 function updateStatsUI(currentValues, liveMetrics = {}) {
     const sum = Object.values(currentValues).reduce((acc, value) => acc + value, 0);
-    fitSumLabel.innerText = `${(sum * 100).toFixed(3)}%`;
 
     const massError = Math.abs(sum - 1) * 100;
     massErrorLabel.innerText = `${massError.toFixed(6)}%`;
@@ -336,12 +332,6 @@ function updateStatsUI(currentValues, liveMetrics = {}) {
         decayedStepLabel.innerText = '--';
     } else {
         decayedStepLabel.innerText = `${(liveMetrics.decayedAmount * 100).toFixed(3)}%`;
-    }
-
-    if (liveMetrics.stepTimeMs == null) {
-        perfStepMsLabel.innerText = '--';
-    } else {
-        perfStepMsLabel.innerText = `${liveMetrics.stepTimeMs.toFixed(2)} ms`;
     }
 
     if (liveMetrics.fps != null) {
@@ -492,7 +482,6 @@ function loop(timestamp) {
             const simulationStart = performance.now();
             latestValues = simulator.simulate(dt);
             const decayedAmount = simulator.lastStepDecayed;
-            const stepTimeMs = performance.now() - simulationStart;
             const deviation = computeLiveDeviation(latestValues);
 
             addRandomHistoryPoint(currentTime, latestValues);
@@ -501,7 +490,6 @@ function loop(timestamp) {
             updateStatsUI(latestValues, {
                 decayedAmount,
                 deviation,
-                stepTimeMs
             });
             drawParticles(latestValues);
             if (graphMode === 'random') {
