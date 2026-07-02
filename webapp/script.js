@@ -353,7 +353,13 @@ function drawChart() {
         }
     };
 
+    console.log(maxTime);
     Plotly.react(chartPlot, traces, layout, { responsive: true });
+
+    chartPlot._fullLayout.xaxis.range = [0, maxTime];
+    chartPlot._fullLayout.yaxis.range = [0, 1];
+    chartPlot._fullLayout.xaxis._rangeInitial0 = 0;
+    chartPlot._fullLayout.xaxis._rangeInitial1 = maxTime;
 }
 
 function loop() {
