@@ -130,7 +130,8 @@
         170px
         60px
         130px
-        1fr;
+        1fr
+        110px;
 
     gap: 18px;
     align-items: center;
@@ -179,6 +180,12 @@
     height: 18px;
 
     cursor: pointer;
+}
+
+.delete-substance-btn {
+    justify-self: end;
+    width: 100%;
+    white-space: nowrap;
 }
 
 /* =========================================================
@@ -238,6 +245,10 @@
         gap: 12px;
 
         padding: 18px 0;
+    }
+
+    .delete-substance-btn {
+        justify-self: stretch;
     }
 
     .checkbox-cell {

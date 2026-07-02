@@ -40,6 +40,7 @@ class DecaySimulator {
     simulateStep(values, timestep, stochastic = false) {
 
         const next = [...values];
+        let stepDecayedTotal = 0;
 
         for (let i = 0; i < this.names.length; i++) {
 
@@ -55,12 +56,18 @@ class DecaySimulator {
                 ? this._stochastic(amount, p)
                 : amount * p;
 
+            // Stochastic rounding can overshoot tiny buckets; never decay more than available.
+            decayed = Math.min(decayed, amount);
+            stepDecayedTotal += decayed;
+
             next[i] -= decayed;
 
             for (const { p: name, v: portion } of products) {
                 next[this.idx[name]] += decayed * portion;
             }
         }
+
+        this.lastStepDecayed = stepDecayedTotal;
 
         return next;
     }
@@ -126,6 +133,7 @@ class DecaySimulator {
 
     reset() {
         this.values = [...this.initialValues];
+        this.lastStepDecayed = 0;
     }
 
     // --------------------------------------------------
